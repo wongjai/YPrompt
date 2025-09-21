@@ -484,7 +484,7 @@ const currentGeneratedPrompt = computed({
     if (promptStore.promptData.generatedPrompt && typeof promptStore.promptData.generatedPrompt === 'string') {
       return promptStore.promptData.generatedPrompt
     }
-    // 兼容原有的多语言格式
+    
     if (promptStore.promptData.generatedPrompt && typeof promptStore.promptData.generatedPrompt === 'object') {
       if (activeTab.value === 'zh') {
         return promptStore.promptData.generatedPrompt.zh || ''

@@ -28,7 +28,6 @@ export class AIGuideService {
     return AIGuideService.instance
   }
 
-  // 简化的AI响应生成 - 不依赖步骤逻辑
   public async generateSimpleResponse(
     userInput: string,
     conversationHistory: Array<{ type: string; content: string }>,
@@ -37,7 +36,6 @@ export class AIGuideService {
     stream: boolean = false
   ): Promise<string> {
     
-    // 构建简化的对话消息
     const messages = this.buildSimpleConversationMessages(userInput, conversationHistory)
     
     // 调用AI API

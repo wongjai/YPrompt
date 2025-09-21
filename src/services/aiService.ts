@@ -60,7 +60,6 @@ export class AIService {
         case 'anthropic':
           return await this.callAnthropicAPIStream(messages, provider, modelId)
         case 'google':
-          // Google流式API目前有问题，暂时降级到非流式
           return await this.callGoogleAPI(messages, provider, modelId)
         default:
           return await this.callOpenAIAPIStream(messages, provider, modelId)
@@ -275,14 +274,14 @@ export class AIService {
     
     if (apiUrl.includes('/chat/completions')) {
       // 已经是完整URL，直接使用
-      // 例如: https://tiingfengai.dpdns.org/v1/chat/completions
+      // 例如: https://xxx/v1/chat/completions
     } else if (apiUrl.includes('/v1')) {
       // 包含v1但没有chat/completions，拼接chat/completions
-      // 例如: https://tiingfengai.dpdns.org/v1 -> https://tiingfengai.dpdns.org/v1/chat/completions
+      // 例如: https://xxx/v1 -> https://xxx/v1/chat/completions
       apiUrl = apiUrl.replace(/\/+$/, '') + '/chat/completions'
     } else {
       // 基础URL，需要拼接完整路径
-      // 例如: https://tiingfengai.dpdns.org -> https://tiingfengai.dpdns.org/v1/chat/completions
+      // 例如: https://xxx -> https://xxx/v1/chat/completions
       apiUrl = apiUrl.replace(/\/+$/, '') + '/v1/chat/completions'
     }
     
