@@ -60,7 +60,7 @@ export class AIService {
         case 'anthropic':
           return await this.callAnthropicAPIStream(messages, provider, modelId)
         case 'google':
-          return await this.callGoogleAPI(messages, provider, modelId)
+          return await this.callGoogleAPIStream(messages, provider, modelId)
         default:
           return await this.callOpenAIAPIStream(messages, provider, modelId)
       }
@@ -181,7 +181,7 @@ export class AIService {
     return result
   }
 
-  // Google API调用
+  // Google Gemini API调用
   private async callGoogleAPI(messages: ChatMessage[], provider: ProviderConfig, modelId: string): Promise<string> {
     // Google Gemini API格式转换
     const systemMessage = messages.find(m => m.role === 'system')?.content || ''
@@ -204,7 +204,7 @@ export class AIService {
       contents[0].parts[0].text = systemMessage + '\n\n' + contents[0].parts[0].text
     }
 
-    // 构建Google API URL - 总是拼接模型路径
+    // 构建Google Gemini API URL - 总是拼接模型路径
     if (!provider.baseUrl) {
       throw new Error('API URL 未配置')
     }
@@ -237,7 +237,7 @@ export class AIService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      throw new Error(`Google API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`)
+      throw new Error(`Google Gemini API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`)
     }
 
     const data = await response.json()
@@ -444,7 +444,118 @@ export class AIService {
     return result
   }
 
-  // Google流式API调用
+  // Google Gemini流式API调用
+  private async callGoogleAPIStream(messages: ChatMessage[], provider: ProviderConfig, modelId: string): Promise<string> {
+    // Google Gemini API格式转换
+    const systemMessage = messages.find(m => m.role === 'system')?.content || ''
+    const conversationMessages = messages.filter(m => m.role !== 'system')
+
+    const contents = conversationMessages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }))
+
+    const requestBody: any = {
+      contents,
+      generationConfig: {
+        temperature: 0.7
+      }
+    }
+
+    // 如果有系统消息，添加到第一个用户消息前
+    if (systemMessage && contents.length > 0) {
+      contents[0].parts[0].text = systemMessage + '\n\n' + contents[0].parts[0].text
+    }
+
+    // 构建Google Gemini API URL - 总是拼接模型路径
+    if (!provider.baseUrl) {
+      throw new Error('API URL 未配置')
+    }
+    let apiUrl = provider.baseUrl.trim()
+    // 确保以/v1beta结尾，然后拼接模型路径
+    if (!apiUrl.endsWith('/v1beta')) {
+      // 如果是完整的generateContent URL，提取baseURL部分
+      if (apiUrl.includes('/models/')) {
+        apiUrl = apiUrl.split('/models/')[0]
+      }
+      // 确保以/v1beta结尾
+      if (!apiUrl.endsWith('/v1beta')) {
+        apiUrl = apiUrl.replace(/\/+$/, '') + '/v1beta'
+      }
+    }
+    // 拼接模型特定路径，添加stream参数
+    apiUrl = `${apiUrl}/models/${modelId}:streamGenerateContent`
+    
+    // 添加API key参数
+    const url = new URL(apiUrl)
+    url.searchParams.set('key', provider.apiKey)
+    
+    const response = await fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(`Google Gemini API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`)
+    }
+
+    if (!response.body) {
+      throw new Error('响应体为空')
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let result = ''
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split('\n')
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            if (data === '[DONE]') continue
+
+            try {
+              const parsed = JSON.parse(data)
+              const candidate = parsed.candidates?.[0]
+              if (candidate?.content?.parts) {
+                for (const part of candidate.content.parts) {
+                  if (part.text && !part.thought) {
+                    result += part.text
+                    // 调用流式更新回调
+                    if (this.onStreamUpdate) {
+                      this.onStreamUpdate(part.text)
+                    }
+                  }
+                }
+              }
+            } catch (parseError) {
+              // 忽略解析错误，继续处理下一行
+              continue
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
+
+    if (!result || result.trim() === '') {
+      throw new Error('API返回空内容')
+    }
+
+    return result
+  }
+
   // 设置流式更新回调
   private onStreamUpdate?: (content: string) => void
 
