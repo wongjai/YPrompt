@@ -1,6 +1,6 @@
 # YPrompt - 智能提示词生成工具
 
-基于AI对话引导的专业提示词生成系统，采用GPrompt方法论生成高质量的AI提示词。
+基于AI对话引导挖掘用户需求的专业提示词生成系统，基于《Architecting Intelligence: A Definitive Guide to the Art and Science of Elite Prompt Engineering》理论生成高质量的AI提示词。
 
 ## 一键部署
 
