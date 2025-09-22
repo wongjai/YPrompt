@@ -123,11 +123,37 @@ export class AIService {
     }
 
     const data = await response.json()
-    const result = data.choices[0]?.message?.content
+    
+    // 支持多种API响应格式的内容提取
+    let result: string | undefined
+    
+    if (data.choices && data.choices[0]?.message?.content) {
+      // OpenAI 格式: {choices: [{message: {content: "text"}}]}
+      result = data.choices[0].message.content
+    } else if (data.candidates && data.candidates[0]?.content?.parts) {
+      // Gemini 格式: {candidates: [{content: {parts: [{text: "text"}]}}]}
+      const parts = data.candidates[0].content.parts
+      // 查找包含text的部分（过滤掉thought等）
+      for (const part of parts) {
+        if (part.text && !part.thought) {
+          result = part.text
+          break
+        }
+      }
+    } else if (data.content && typeof data.content === 'string') {
+      // 直接返回内容格式
+      result = data.content
+    } else if (data.text && typeof data.text === 'string') {
+      // 简单文本格式
+      result = data.text
+    }
     
     if (!result || result.trim() === '') {
-      throw new Error('API返回空内容')
+      throw new Error('API返回空内容或无法解析响应格式')
     }
+    
+    // 清理响应内容中的评估标签等
+    result = this.cleanResponse(result)
     
     return result
   }
@@ -331,10 +357,31 @@ export class AIService {
             
             try {
               const parsed = JSON.parse(data)
-              const content = parsed.choices?.[0]?.delta?.content
+              let content: string | undefined
+              
+              // 支持多种流式响应格式
+              if (parsed.choices?.[0]?.delta?.content) {
+                // OpenAI 流式格式
+                content = parsed.choices[0].delta.content
+              } else if (parsed.candidates?.[0]?.content?.parts) {
+                // Gemini SSE 流式格式
+                const parts = parsed.candidates[0].content.parts
+                for (const part of parts) {
+                  if (part.text && !part.thought) {
+                    content = part.text
+                    break
+                  }
+                }
+              } else if (parsed.delta?.text) {
+                // 简化流式格式
+                content = parsed.delta.text
+              } else if (parsed.text) {
+                // 直接文本格式
+                content = parsed.text
+              }
+              
               if (content) {
                 result += content
-                // 这里可以添加实时更新UI的回调
                 if (this.onStreamUpdate) {
                   this.onStreamUpdate(content)
                 }
@@ -352,6 +399,9 @@ export class AIService {
     if (!result || result.trim() === '') {
       throw new Error('API返回空内容')
     }
+
+    // 清理流式响应内容中的评估标签等
+    result = this.cleanResponse(result)
 
     return result
   }
@@ -486,9 +536,10 @@ export class AIService {
     // 拼接模型特定路径，添加stream参数
     apiUrl = `${apiUrl}/models/${modelId}:streamGenerateContent`
     
-    // 添加API key参数
+    // 添加API key和SSE格式参数
     const url = new URL(apiUrl)
     url.searchParams.set('key', provider.apiKey)
+    url.searchParams.set('alt', 'sse')  // 关键：告诉Gemini API返回SSE格式
     
     const response = await fetch(url.toString(), {
       method: 'POST',
@@ -553,7 +604,51 @@ export class AIService {
       throw new Error('API返回空内容')
     }
 
+    // 清理流式响应内容中的评估标签等
+    result = this.cleanResponse(result)
+
     return result
+  }
+
+  // 清理AI响应中的评估标签
+  private cleanResponse(response: string): string {
+    try {
+      // 移除完整的评估标签及其内容
+      let cleaned = response.replace(/<ASSESSMENT>[\s\S]*?<\/ASSESSMENT>/gi, '').trim()
+      
+      // 处理流式过程中不完整的评估标签
+      // 如果发现开始标签但没有结束标签，截断到开始标签之前
+      const assessmentStart = cleaned.indexOf('<ASSESSMENT>')
+      if (assessmentStart !== -1) {
+        cleaned = cleaned.substring(0, assessmentStart).trim()
+      }
+      
+      // 处理其他可能的不完整标签模式
+      const patterns = [
+        /<ASSE[^>]*$/i,     // 不完整的开始标签
+        /<\/ASSE[^>]*$/i,   // 不完整的结束标签
+        /\n\n<ASSE/i,       // 换行后的开始标签
+        /CONTEXT:/i,        // 评估内容的关键词
+        /TASK:/i,
+        /FORMAT:/i,
+        /QUALITY:/i,
+        /TURN_COUNT:/i,
+        /DECISION:/i,
+        /CONFIDENCE:/i
+      ]
+      
+      for (const pattern of patterns) {
+        const match = cleaned.search(pattern)
+        if (match !== -1) {
+          cleaned = cleaned.substring(0, match).trim()
+          break
+        }
+      }
+      
+      return cleaned
+    } catch (error) {
+      return response // 清理失败时返回原内容
+    }
   }
 
   // 设置流式更新回调
@@ -569,6 +664,124 @@ export class AIService {
 
   // 获取可用模型列表
   async getAvailableModels(provider: ProviderConfig): Promise<string[]> {
+    try {
+      // 确定API类型
+      const apiType = provider.type
+      
+      // 根据API类型调用不同方法
+      switch (apiType) {
+        case 'openai':
+          return await this.getOpenAIModels(provider)
+        case 'anthropic':
+          return await this.getAnthropicModels(provider)
+        case 'google':
+          return await this.getGeminiModels(provider)
+        case 'custom':
+          // 自定义类型需要进一步判断实际API类型
+          return await this.getCustomProviderModels(provider)
+        default:
+          return await this.getOpenAIModels(provider)
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  // OpenAI模型列表获取
+  private async getOpenAIModels(provider: ProviderConfig): Promise<string[]> {
+    const apiUrl = this.buildOpenAIModelsUrl(provider.baseUrl)
+    
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${provider.apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`OpenAI Models API error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    
+    if (data.data && Array.isArray(data.data)) {
+      return data.data
+        .map((model: any) => model.id)
+        .filter((id: string) => id && typeof id === 'string')
+        .sort()
+    }
+    
+    throw new Error('OpenAI API返回的模型列表格式不正确')
+  }
+
+  // Gemini模型列表获取
+  private async getGeminiModels(provider: ProviderConfig): Promise<string[]> {
+    const apiUrl = this.buildGeminiModelsUrl(provider.baseUrl)
+    
+    // Gemini使用URL参数认证
+    const url = new URL(apiUrl)
+    url.searchParams.set('key', provider.apiKey)
+    
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`Gemini Models API error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    
+    if (data.models && Array.isArray(data.models)) {
+      return data.models
+        .map((model: any) => {
+          if (model.name && typeof model.name === 'string') {
+            return model.name.replace(/^models\//, '') // 移除 "models/" 前缀
+          }
+          return model.id || model.name
+        })
+        .filter((name: string) => name && typeof name === 'string')
+        .sort()
+    }
+    
+    throw new Error('Gemini API返回的模型列表格式不正确')
+  }
+
+  // Anthropic模型列表获取
+  private async getAnthropicModels(provider: ProviderConfig): Promise<string[]> {
+    // Anthropic不提供公开的模型列表API，返回预定义列表
+    return [
+      'claude-3-5-sonnet-20241022',
+      'claude-3-5-haiku-20241022',
+      'claude-3-opus-20240229',
+      'claude-3-sonnet-20240229',
+      'claude-3-haiku-20240307'
+    ].sort()
+  }
+
+  // 自定义提供商模型列表获取
+  private async getCustomProviderModels(provider: ProviderConfig): Promise<string[]> {
+    // 对于自定义提供商，尝试多种格式
+    try {
+      // 首先尝试OpenAI格式
+      return await this.getOpenAIModels(provider)
+    } catch (error1) {
+      try {
+        // 然后尝试Gemini格式
+        return await this.getGeminiModels(provider)
+      } catch (error2) {
+        // 最后使用通用解析逻辑
+        return await this.getModelsWithGenericParsing(provider)
+      }
+    }
+  }
+
+  // 通用模型列表解析（保持向后兼容）
+  private async getModelsWithGenericParsing(provider: ProviderConfig): Promise<string[]> {
     try {
       // 构建模型列表API URL
       if (!provider.baseUrl) {
@@ -600,18 +813,88 @@ export class AIService {
 
       const data = await response.json()
       
-      // 提取模型ID列表
+      // 提取模型ID列表 - 支持多种API格式
+      let models: any[] = []
+      
       if (data.data && Array.isArray(data.data)) {
-        return data.data
+        // OpenAI 格式: {data: [{id: "model-id"}, ...]}
+        models = data.data
           .map((model: any) => model.id)
           .filter((id: string) => id && typeof id === 'string')
-          .sort()
+      } else if (data.models && Array.isArray(data.models)) {
+        // Gemini 格式: {models: [{name: "models/model-name"}, ...]}
+        models = data.models
+          .map((model: any) => {
+            // 提取模型名称，支持 "models/gemini-1.5-pro" 格式
+            if (model.name && typeof model.name === 'string') {
+              return model.name.replace(/^models\//, '') // 移除 "models/" 前缀
+            }
+            return model.id || model.name
+          })
+          .filter((name: string) => name && typeof name === 'string')
+      } else if (Array.isArray(data)) {
+        // 直接数组格式: [{id: "model-id"}, ...] 或 ["model-id", ...]
+        models = data
+          .map((item: any) => {
+            if (typeof item === 'string') {
+              return item
+            } else if (item.id) {
+              return item.id
+            } else if (item.name) {
+              return item.name.replace(/^models\//, '')
+            }
+            return null
+          })
+          .filter((name: string) => name && typeof name === 'string')
+      }
+      
+      if (models.length > 0) {
+        return models.sort()
       }
       
       throw new Error('无效的模型列表响应格式')
     } catch (error) {
-      console.error('获取模型列表失败:', error)
       throw error
+    }
+  }
+
+  // OpenAI模型列表URL构建
+  private buildOpenAIModelsUrl(baseUrl: string): string {
+    if (!baseUrl) {
+      throw new Error('API URL 未配置')
+    }
+    
+    let apiUrl = baseUrl.trim()
+    
+    if (apiUrl.includes('/models')) {
+      // 已经是模型列表URL，直接使用
+      return apiUrl
+    } else if (apiUrl.includes('/v1')) {
+      // 包含v1但没有models，拼接models
+      return apiUrl.replace(/\/+$/, '') + '/models'
+    } else {
+      // 基础URL，需要拼接完整路径
+      return apiUrl.replace(/\/+$/, '') + '/v1/models'
+    }
+  }
+
+  // Gemini模型列表URL构建
+  private buildGeminiModelsUrl(baseUrl: string): string {
+    if (!baseUrl) {
+      throw new Error('API URL 未配置')
+    }
+    
+    let apiUrl = baseUrl.trim()
+    
+    if (apiUrl.includes('/models')) {
+      // 已经是模型列表URL，直接使用
+      return apiUrl
+    } else if (apiUrl.includes('/v1beta')) {
+      // 包含v1beta但没有models，拼接models
+      return apiUrl.replace(/\/+$/, '') + '/models'
+    } else {
+      // 基础URL，需要拼接完整路径
+      return apiUrl.replace(/\/+$/, '') + '/v1beta/models'
     }
   }
 

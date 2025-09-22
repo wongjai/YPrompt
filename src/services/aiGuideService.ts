@@ -16,7 +16,6 @@ export class AIGuideService {
       const savedStreamMode = localStorage.getItem('yprompt_stream_mode')
       return savedStreamMode ? JSON.parse(savedStreamMode) : true // 默认为true
     } catch (error) {
-      console.error('Failed to parse stream mode setting:', error)
       return true // 默认为流式模式
     }
   }

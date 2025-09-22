@@ -864,7 +864,6 @@ const fetchAvailableModels = async () => {
       modelFetchError.value = '未找到可用模型'
     }
   } catch (error: any) {
-    console.error('获取模型列表失败:', error)
     modelFetchError.value = error.message || '获取模型列表失败，请手动输入模型ID'
   } finally {
     loadingModels.value = false

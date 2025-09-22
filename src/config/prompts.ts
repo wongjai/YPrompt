@@ -106,7 +106,6 @@ export class PromptConfigManager {
         this.config.requirementReportRules = parsed.requirementReportRules || REQUIREMENT_REPORT_RULES
       }
     } catch (error) {
-      console.error('Failed to load prompt config from localStorage:', error)
       // 加载失败时使用默认配置
       this.config = {
         systemPromptRules: SYSTEM_PROMPT_RULES,

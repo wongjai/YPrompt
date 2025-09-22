@@ -249,7 +249,6 @@ const renderMarkdown = (content: string): string => {
     // 确保返回字符串类型
     return typeof result === 'string' ? result : String(result)
   } catch (error) {
-    console.error('Markdown rendering error:', error)
     return content // 降级为纯文本
   }
 }
@@ -273,7 +272,6 @@ const renderUserMessage = (content: string): string => {
       return content.replace(/\n/g, '<br>')
     }
   } catch (error) {
-    console.error('User message rendering error:', error)
     // 错误时使用markdown渲染作为兜底
     try {
       const result = marked(content, { breaks: true, gfm: true })
@@ -299,13 +297,11 @@ const checkAIDecision = (response: string): boolean => {
     const decisionMatch = assessmentContent.match(/DECISION:\s*\[([^\]]+)\]/i)
     if (decisionMatch) {
       const decision = decisionMatch[1].trim().toUpperCase()
-      console.log('AI Decision:', decision) // 调试日志
       return decision === 'END_NOW'
     }
     
     return false
   } catch (error) {
-    console.error('AI decision parsing error:', error)
     return false // 解析错误时继续对话
   }
 }
@@ -347,7 +343,6 @@ const cleanAIResponse = (response: string): string => {
     
     return cleaned
   } catch (error) {
-    console.error('Response cleaning error:', error)
     return response // 清理失败时返回原内容
   }
 }
