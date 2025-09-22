@@ -114,6 +114,8 @@
           ref="textareaRef"
           v-model="userInput"
           @keydown="handleKeydown"
+          @compositionstart="handleCompositionStart"
+          @compositionend="handleCompositionEnd"
           @input="adjustTextareaHeight"
           @focus="showQuickReplies = true"
           :placeholder="shouldShowQuickReplies ? '输入或点击上方快速回复...' : '请描述您的需求（Shift+Enter换行）'"
@@ -174,6 +176,9 @@ const textareaRef = ref<HTMLTextAreaElement>()
 
 // 流式模式状态
 const isStreamMode = ref(true) // 默认开启流式模式
+
+// 输入法组合状态
+const isComposing = ref(false)
 
 // 响应式设计配置
 const isMobileDevice = ref(false)
@@ -689,6 +694,15 @@ const clearChat = () => {
   }, 500)
 }
 
+// 输入法组合事件处理
+const handleCompositionStart = () => {
+  isComposing.value = true
+}
+
+const handleCompositionEnd = () => {
+  isComposing.value = false
+}
+
 // 键盘事件
 const handleKeydown = (event: KeyboardEvent) => {
   if (event.key === 'Enter') {
@@ -697,6 +711,10 @@ const handleKeydown = (event: KeyboardEvent) => {
       return // 让默认行为发生（换行）
     } else {
       // Enter: 发送消息
+      // 如果正在使用输入法组合，不发送消息
+      if (isComposing.value) {
+        return
+      }
       event.preventDefault()
       sendMessage()
     }
