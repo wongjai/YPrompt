@@ -500,7 +500,7 @@ const sendMessage = async () => {
       
       // 调用流式API
       const aiResponse = await aiGuideService.generateSimpleResponse(
-        currentInput,
+        '', // 用户消息已在chatMessages中，避免重复
         promptStore.chatMessages,
         provider,
         model.id,
@@ -521,7 +521,7 @@ const sendMessage = async () => {
     } else {
       // 非流式模式
       const aiResponse = await aiGuideService.generateSimpleResponse(
-        currentInput,
+        '', // 用户消息已在chatMessages中，避免重复
         promptStore.chatMessages,
         provider,
         model.id,
