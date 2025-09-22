@@ -673,7 +673,7 @@ export class AIService {
         case 'openai':
           return await this.getOpenAIModels(provider)
         case 'anthropic':
-          return await this.getAnthropicModels(provider)
+          return await this.getAnthropicModels()
         case 'google':
           return await this.getGeminiModels(provider)
         case 'custom':
@@ -689,6 +689,9 @@ export class AIService {
 
   // OpenAI模型列表获取
   private async getOpenAIModels(provider: ProviderConfig): Promise<string[]> {
+    if (!provider.baseUrl) {
+      throw new Error('API URL 未配置')
+    }
     const apiUrl = this.buildOpenAIModelsUrl(provider.baseUrl)
     
     const response = await fetch(apiUrl, {
@@ -717,6 +720,9 @@ export class AIService {
 
   // Gemini模型列表获取
   private async getGeminiModels(provider: ProviderConfig): Promise<string[]> {
+    if (!provider.baseUrl) {
+      throw new Error('API URL 未配置')
+    }
     const apiUrl = this.buildGeminiModelsUrl(provider.baseUrl)
     
     // Gemini使用URL参数认证
@@ -752,7 +758,7 @@ export class AIService {
   }
 
   // Anthropic模型列表获取
-  private async getAnthropicModels(provider: ProviderConfig): Promise<string[]> {
+  private async getAnthropicModels(): Promise<string[]> {
     // Anthropic不提供公开的模型列表API，返回预定义列表
     return [
       'claude-3-5-sonnet-20241022',

@@ -52,10 +52,18 @@ export const useSettingsStore = defineStore('settings', () => {
         baseUrl: 'https://api.openai.com/v1/chat/completions',
         allowCustomUrl: true,
         models: [
+          { id: 'gpt-5', name: 'GPT-5', enabled: true, apiType: 'openai' as const },
+          { id: 'gpt-5-mini', name: 'GPT-5 Mini', enabled: true, apiType: 'openai' as const },
+          { id: 'gpt-5-nano', name: 'GPT-5 Nano', enabled: true, apiType: 'openai' as const },
+          { id: 'gpt-5-pro', name: 'GPT-5 Pro', enabled: true, apiType: 'openai' as const },
+          { id: 'gpt-5-codex', name: 'GPT-5 Codex', enabled: true, apiType: 'openai' as const },
+          { id: 'gpt-4', name: 'GPT-4', enabled: true, apiType: 'openai' as const },
           { id: 'gpt-4o', name: 'GPT-4o', enabled: true, apiType: 'openai' as const },
           { id: 'gpt-4o-mini', name: 'GPT-4o Mini', enabled: true, apiType: 'openai' as const },
           { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', enabled: true, apiType: 'openai' as const },
-          { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', enabled: true, apiType: 'openai' as const }
+          { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', enabled: true, apiType: 'openai' as const },
+          { id: 'o1', name: 'O1', enabled: true, apiType: 'openai' as const },
+          { id: 'o1-mini', name: 'O1 Mini', enabled: true, apiType: 'openai' as const }
         ]
       },
       anthropic: {
@@ -64,9 +72,13 @@ export const useSettingsStore = defineStore('settings', () => {
         baseUrl: 'https://api.anthropic.com/v1/messages',
         allowCustomUrl: true,
         models: [
+          { id: 'claude-opus-4-1-20250805', name: 'Claude 4.1 Opus', enabled: true, apiType: 'anthropic' as const },
+          { id: 'claude-opus-4-20250514', name: 'Claude 4 Opus', enabled: true, apiType: 'anthropic' as const },
+          { id: 'claude-sonnet-4-20250514', name: 'Claude 4 Sonnet', enabled: true, apiType: 'anthropic' as const },
+          { id: 'claude-3-7-sonnet-20250219', name: 'Claude 3.7 Sonnet', enabled: true, apiType: 'anthropic' as const },
           { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet', enabled: true, apiType: 'anthropic' as const },
           { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku', enabled: true, apiType: 'anthropic' as const },
-          { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', enabled: true, apiType: 'anthropic' as const }
+          { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', enabled: true, apiType: 'anthropic' as const }
         ]
       },
       google: {
@@ -75,6 +87,11 @@ export const useSettingsStore = defineStore('settings', () => {
         baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
         allowCustomUrl: true,
         models: [
+          { id: 'gemini-2-5-pro', name: 'Gemini 2.5 Pro', enabled: true, apiType: 'google' as const },
+          { id: 'gemini-2-5-flash', name: 'Gemini 2.5 Flash', enabled: true, apiType: 'google' as const },
+          { id: 'gemini-2-5-flash-lite', name: 'Gemini 2.5 Flash-Lite', enabled: true, apiType: 'google' as const },
+          { id: 'gemini-2-0-flash', name: 'Gemini 2.0 Flash', enabled: true, apiType: 'google' as const },
+          { id: 'gemini-2-0-flash-lite', name: 'Gemini 2.0 Flash-Lite', enabled: true, apiType: 'google' as const },
           { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash', enabled: true, apiType: 'google' as const },
           { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', enabled: true, apiType: 'google' as const },
           { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', enabled: true, apiType: 'google' as const }
