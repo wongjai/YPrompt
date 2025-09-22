@@ -65,17 +65,18 @@ export class AIGuideService {
       content: msg.content
     }))
 
-    // 当前用户输入
-    const currentUserMessage = {
-      role: 'user' as const,
-      content: userInput
+    // 构建消息数组
+    const messages = [systemMessage, ...conversationMessages]
+    
+    // 只有当userInput不为空时才添加当前用户消息（避免重复）
+    if (userInput.trim()) {
+      messages.push({
+        role: 'user' as const,
+        content: userInput
+      })
     }
 
-    return [
-      systemMessage,
-      ...conversationMessages,
-      currentUserMessage
-    ]
+    return messages
   }
 
   // 获取步骤信息
