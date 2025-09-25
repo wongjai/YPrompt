@@ -127,7 +127,7 @@
     </div>
 
     <!-- Chat Messages - 可滚动区域 -->
-    <div ref="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-0" :style="{ maxHeight: shouldShowQuickReplies ? 'calc(100vh - 420px)' : 'calc(100vh - 340px)' }">
+    <div ref="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-0" :style="{ maxHeight: chatContainerMaxHeight }">
       <div
         v-for="(message, index) in promptStore.chatMessages.filter(msg => !msg.isDeleted)"
         :key="message.id || index"
@@ -630,6 +630,29 @@ const getCurrentChatModel = () => {
 const shouldShowQuickReplies = computed(() => {
   // 对话消息数大于2（AI初始问题 + 用户第一次回答）时才显示快捷回复
   return promptStore.chatMessages.length >= 2 && showQuickReplies.value
+})
+
+// 动态计算聊天容器的最大高度
+const chatContainerMaxHeight = computed(() => {
+  // 基于原来的计算，只在模型选择器显示时额外减少高度
+  const baseCalculation = shouldShowQuickReplies.value ? 420 : 340
+  
+  // 根据屏幕尺寸调整模型选择器高度
+  // 移动端垂直排列高度较大，PC端水平排列高度较小
+  let modelSelectorExtraHeight = 0
+  if (showModelSelector.value) {
+    // 使用CSS媒体查询逻辑：sm断点是640px
+    if (typeof window !== 'undefined' && window.innerWidth >= 640) {
+      // PC端：水平排列，高度约114px
+      modelSelectorExtraHeight = 114
+    } else {
+      // 移动端：垂直排列，高度约120px
+      modelSelectorExtraHeight = 120
+    }
+  }
+  
+  const totalReduction = baseCalculation + modelSelectorExtraHeight
+  return `calc(100vh - ${totalReduction}px)`
 })
 
 // 点击外部区域隐藏快捷回复
