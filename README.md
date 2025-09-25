@@ -4,9 +4,9 @@
 
 ## 一键部署
 
-在 Github 上先[![Fork me on GitHub](https://raw.githubusercontent.com/fishforks/fish2018/refs/heads/main/forkme.png)](https://github.com/fish2018/YPrompt/fork)本项目，并点上 Star !!!
+在 Github 上先[![Fork me on GitHub](https://raw.githubusercontent.com/fishforks/fish2018/refs/heads/main/forkme.png)](https://github.com/wongjai/YPrompt/fork)本项目，并点上 Star !!!
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/fish2018/YPrompt&build-command=npm%20run%20build&install-command=npm%20install&output-directory=dist)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/wongjai/YPrompt&build-command=npm%20run%20build&install-command=npm%20install&output-directory=dist)
 
 **Vercel 部署步骤**
 1. Fork 本仓库到您的 GitHub 账户
