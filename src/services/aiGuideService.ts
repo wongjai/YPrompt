@@ -8,7 +8,7 @@ export class AIGuideService {
   private static instance: AIGuideService
   private aiService: AIService
 
-  private function Object() { [native code] }() {
+  private constructor() {
     this.aiService = AIService.getInstance()
   }
 

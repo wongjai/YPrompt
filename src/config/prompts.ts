@@ -19,7 +19,7 @@ export class PromptConfigManager {
   private static instance: PromptConfigManager
   private config: PromptConfig
   
-  private function Object() { [native code] }() {
+  private constructor() {
     this.config = {
       systemPromptRules: SYSTEM_PROMPT_RULES,
       userGuidedPromptRules: USER_GUIDED_PROMPT_RULES,

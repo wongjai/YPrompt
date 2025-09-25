@@ -12,7 +12,7 @@ export const useNotificationStore = defineStore('notification', () => {
   const notifications = ref<Notification[]>([])
 
   const addNotification = (notification: Omit<Notification, 'id'>) => {
-    const id = Date.now().function toString() { [native code] }()
+    const id = Date.now().toString()
     const newNotification: Notification = {
       id,
       ...notification,

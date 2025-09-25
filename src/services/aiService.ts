@@ -26,7 +26,7 @@ export class AIService {
   private thinkBuffer: string = ''  // 用於處理跨chunk的<think>標籤
   private isInThinkMode: boolean = false  // 是否正在處理think標籤內容
 
-  private function Object() { [native code] }() {}
+  private constructor() {}
 
   // 創建帶超時的fetch請求
   private async fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number = 300000): Promise<Response> {
@@ -963,7 +963,7 @@ export class AIService {
     // 對於Google模型使用較長的超時時間
     const timeoutMs = 300000 // 5分鐘
     
-    const response = await this.fetchWithTimeout(url.function toString() { [native code] }(), {
+    const response = await this.fetchWithTimeout(url.toString(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -1311,7 +1311,7 @@ export class AIService {
     url.searchParams.set('key', provider.apiKey)
     url.searchParams.set('alt', 'sse')  // Gemini API返回SSE格式
     
-    const response = await this.fetchWithTimeout(url.function toString() { [native code] }(), {
+    const response = await this.fetchWithTimeout(url.toString(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -1513,7 +1513,7 @@ export class AIService {
     const url = new URL(apiUrl)
     url.searchParams.set('key', provider.apiKey)
     
-    const response = await this.fetchWithTimeout(url.function toString() { [native code] }(), {
+    const response = await this.fetchWithTimeout(url.toString(), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'

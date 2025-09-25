@@ -7,7 +7,7 @@ export class CapabilityDetector {
   private testCache = new Map<string, ModelCapabilities>()
   private aiService = AIService.getInstance()
 
-  private function Object() { [native code] }() {}
+  private constructor() {}
 
   public static getInstance(): CapabilityDetector {
     if (!CapabilityDetector.instance) {
@@ -696,7 +696,7 @@ export class CapabilityDetector {
         }
       }
 
-      const response = await fetch(url.function toString() { [native code] }(), {
+      const response = await fetch(url.toString(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

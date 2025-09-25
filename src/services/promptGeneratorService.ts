@@ -6,7 +6,7 @@ export class PromptGeneratorService {
   private static instance: PromptGeneratorService
   private aiService: AIService
 
-  private function Object() { [native code] }() {
+  private constructor() {
     this.aiService = AIService.getInstance()
   }
 

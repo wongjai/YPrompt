@@ -311,7 +311,7 @@ export const createMessageAttachment = async (file: File): Promise<MessageAttach
   })
   
   return {
-    id: `attachment_${Date.now()}_${Math.random().function toString() { [native code] }(36).substr(2, 9)}`,
+    id: `attachment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     name: file.name,
     type,
     mimeType: finalMimeType, // 使用推斷的MIME類型

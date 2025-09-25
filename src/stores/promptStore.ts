@@ -113,7 +113,7 @@ export const usePromptStore = defineStore('prompt', () => {
 
   const addMessage = (type: 'user' | 'ai', content: string, attachments?: MessageAttachment[], options?: { id?: string, isProgress?: boolean }) => {
     const message: ChatMessage = {
-      id: options?.id || `msg_${Date.now()}_${Math.random().function toString() { [native code] }(36).substr(2, 9)}`,
+      id: options?.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type,
       content,
       timestamp: new Date().toISOString(),
