@@ -72,13 +72,13 @@
           
             <!-- API配置说明 -->
             <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 class="text-sm font-medium text-blue-800 mb-2">🔧 API配置说明</h4>
+              <h4 class="text-sm font-medium text-blue-800 mb-2">API配置说明</h4>
               <div class="text-sm text-blue-700 space-y-2">
                 <div><strong>OpenAI及兼容服务：</strong>API URL填写完整路径，如 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://api.openai.com/v1/chat/completions</code></div>
                 <div><strong>Anthropic Claude：</strong>API URL填写 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://api.anthropic.com/v1/messages</code></div>
                 <div><strong>Google Gemini：</strong>API URL填写 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://generativelanguage.googleapis.com/v1beta</code>（系统会自动根据模型拼接路径）</div>
                 <div><strong>自定义提供商：</strong>大多数第三方服务使用OpenAI兼容格式，URL结构为 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://你的域名/v1/chat/completions</code></div>
-                <div class="text-xs text-blue-600 mt-2">💡 支持代理地址、中转API等各种自定义URL</div>
+                <div class="text-xs text-blue-600 mt-2">支持代理地址、中转API等各种自定义URL</div>
               </div>
             </div>
 
@@ -178,26 +178,61 @@
                     <div
                       v-for="model in provider.models"
                       :key="model.id"
-                      class="flex items-center justify-between p-2 bg-gray-50 rounded"
+                      class="relative flex items-center justify-between p-2 bg-gray-50 rounded min-w-0 overflow-x-auto"
                     >
-                      <div class="flex items-center space-x-2">
+                      <div class="flex items-center space-x-2 flex-shrink-0">
                         <input
                           v-model="model.enabled"
                           type="checkbox"
-                          class="rounded"
+                          class="rounded flex-shrink-0"
                           @change="settingsStore.saveSettings"
                         />
-                        <span class="text-sm">{{ model.name }}</span>
-                        <code class="text-xs text-gray-500 bg-gray-200 px-1 rounded">{{ model.id }}</code>
+                        <span class="text-sm font-medium whitespace-nowrap">{{ model.name }}</span>
+                        
+                        <!-- 能力指示器 - 紧凑排列 -->
+                        <div class="flex items-center space-x-1 flex-shrink-0">
+                          <span v-if="model.capabilities?.reasoning" 
+                                class="inline-flex items-center text-xs bg-purple-100 text-purple-800 rounded-full w-4 h-4 justify-center"
+                                :title="settingsStore.getReasoningTypeDescription(model.capabilities.reasoningType)">
+                            🧠
+                          </span>
+                          <span v-if="model.capabilities?.testResult?.connected" 
+                                class="inline-flex items-center text-xs bg-green-100 text-green-800 rounded-full w-4 h-4 justify-center">
+                            ✅
+                          </span>
+                          <span v-if="model.testStatus === 'failed'" 
+                                class="inline-flex items-center text-xs bg-red-100 text-red-800 rounded-full w-4 h-4 justify-center">
+                            ❌
+                          </span>
+                        </div>
+                        
+                        <!-- API类型标签 - 更小 -->
                         <span 
                           v-if="model.apiType"
-                          class="text-xs px-1 py-0.5 rounded text-white"
+                          class="text-xs px-1.5 py-0.5 rounded text-white flex-shrink-0"
                           :class="getApiTypeColor(model.apiType)"
                         >
                           {{ getApiTypeLabel(model.apiType) }}
                         </span>
                       </div>
-                      <div class="flex items-center space-x-1">
+                      
+                      <!-- 操作按钮 -->
+                      <div class="flex items-center space-x-1 flex-shrink-0">
+                        <!-- 模型级别测试按钮 -->
+                        <button
+                          @click="testModel(provider.id, model.id)"
+                          :disabled="model.testStatus === 'testing' || !provider.apiKey"
+                          :class="[
+                            'transition-colors text-sm',
+                            model.testStatus === 'testing' ? 'text-blue-600' : 
+                            model.testStatus === 'success' ? 'text-green-500 hover:text-green-700' :
+                            model.testStatus === 'failed' ? 'text-red-500 hover:text-red-700' :
+                            'text-gray-400 hover:text-blue-500'
+                          ]"
+                          :title="getTestButtonTitle(model)"
+                        >
+                          <Zap class="w-3 h-3" :class="{ 'animate-pulse': model.testStatus === 'testing' }" />
+                        </button>
                         <button
                           @click="editModel(provider.id, model)"
                           class="text-blue-500 hover:text-blue-700"
@@ -212,6 +247,14 @@
                         >
                           <X class="w-3 h-3" />
                         </button>
+                      </div>
+                      
+                      <!-- 错误信息 - 只在有错误时显示，占满宽度 -->
+                      <div v-if="model.capabilities?.testResult?.error" class="absolute left-0 right-0 top-full mt-1 z-10">
+                        <div class="text-xs text-red-500 bg-red-50 border border-red-200 rounded px-2 py-1 truncate" 
+                             :title="model.capabilities.testResult.error">
+                          {{ model.capabilities.testResult.error }}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -488,7 +531,7 @@
           :disabled="!newModel.name || !newModel.id || (getProviderForModel(addingModelToProvider)?.type === 'custom' && !newModel.apiType)"
           class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
         >
-          添加
+          {{ editingModel ? '保存' : '添加' }}
         </button>
       </div>
     </div>
@@ -737,6 +780,88 @@ const testConnection = async (provider: any) => {
   }
 }
 
+// 新增：模型级别测试（优化版）
+const testModel = async (providerId: string, modelId: string) => {
+  const provider = settingsStore.providers.find(p => p.id === providerId)
+  if (!provider) {
+    notificationStore.error('未找到提供商配置')
+    return
+  }
+  
+  if (!provider.apiKey) {
+    notificationStore.warning('请先配置API密钥')
+    return
+  }
+
+  // 1. 手动清空之前的状态
+  const model = provider.models.find(m => m.id === modelId)
+  if (model) {
+    model.testStatus = 'untested'
+    model.capabilities = undefined
+    model.lastTested = undefined
+  }
+  
+  // 2. 设置测试中状态
+  settingsStore.updateModelTestStatus(providerId, modelId, 'testing')
+  
+  try {
+    const { CapabilityDetector } = await import('@/services/capabilityDetector')
+    const detector = CapabilityDetector.getInstance()
+    
+    // 使用优化的检测方法：快速连接 + 异步思考
+    await detector.detectCapabilitiesWithCallback(
+      provider, 
+      modelId,
+      // 连接结果回调（快速响应，立即显示✅）
+      (connected: boolean, responseTime: number, error?: string) => {
+        if (connected) {
+          // 立即更新连接状态，显示✅指示器
+          settingsStore.updateModelConnectionStatus(providerId, modelId, true)
+          notificationStore.success(`模型 ${modelId} 连接成功！(${responseTime}ms) 正在后台检测思考能力...`)
+        } else {
+          settingsStore.updateModelConnectionStatus(providerId, modelId, false, error)
+          notificationStore.error(`模型 ${modelId} 连接失败：${error || '未知错误'}`)
+        }
+        // 保存设置（连接状态）
+        settingsStore.saveSettings()
+      },
+      // 思考能力结果回调（异步更新，可能会额外显示🧠）
+      (capabilities) => {
+        settingsStore.updateModelCapabilities(providerId, modelId, capabilities)
+        
+        if (capabilities.reasoning) {
+          const thinkingType = settingsStore.getReasoningTypeDescription(capabilities.reasoningType)
+          notificationStore.success(`🧠 模型 ${modelId} 思考能力检测完成：支持${thinkingType}`)
+        }
+        
+        // 保存设置（最终结果）
+        settingsStore.saveSettings()
+      },
+      true // 强制刷新缓存，因为用户主动点击测试
+    )
+    
+  } catch (error) {
+    settingsStore.updateModelTestStatus(providerId, modelId, 'failed')
+    notificationStore.error(`模型 ${modelId} 测试出错：${(error as Error).message}`)
+    settingsStore.saveSettings()
+  }
+}
+
+// 获取测试按钮提示文本
+const getTestButtonTitle = (model: any) => {
+  switch (model.testStatus) {
+    case 'testing':
+      return '测试中...'
+    case 'success':
+      return '重新测试'
+    case 'failed':
+      return '重新测试'
+    default:
+      return '测试模型连接和能力'
+  }
+}
+
+
 // 保存提供商（添加或编辑）
 const saveProvider = () => {
   try {
@@ -854,8 +979,9 @@ const fetchAvailableModels = async () => {
       throw new Error('请先配置提供商的API密钥和基础URL')
     }
     
-    // 获取模型列表（使用OpenAI格式）
-    const models = await aiService.getAvailableModels(provider)
+    // 获取模型列表，优先使用用户选择的API类型
+    const preferredApiType = newModel.value.apiType as 'openai' | 'anthropic' | 'google' | undefined
+    const models = await aiService.getAvailableModels(provider, preferredApiType)
     
     // 将模型列表缓存到对应的提供商
     providerModelsCache.value[providerId] = models

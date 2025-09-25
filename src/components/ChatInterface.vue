@@ -1,5 +1,11 @@
 <template>
-  <div class="bg-white rounded-lg shadow-sm flex flex-col h-full overflow-hidden">
+  <div 
+    class="bg-white rounded-lg shadow-sm flex flex-col h-full max-h-full overflow-hidden relative"
+    @dragover.prevent="handleGlobalDragOver"
+    @dragenter.prevent="handleGlobalDragEnter"
+    @dragleave.prevent="handleGlobalDragLeave"
+    @drop.prevent="handleGlobalDrop"
+  >
     <div class="p-4 border-b border-gray-200 flex-shrink-0">
       <div class="flex justify-between items-center">
         <div>
@@ -48,35 +54,201 @@
       </div>
     </div>
 
-    <!-- Chat Messages - 固定高度，内部滚动 -->
-    <div ref="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-0" :style="{ maxHeight: shouldShowQuickReplies ? 'calc(100vh - 380px)' : 'calc(100vh - 300px)' }">
+    <!-- Chat Messages - 可滚动区域 -->
+    <div ref="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-0" :style="{ maxHeight: shouldShowQuickReplies ? 'calc(100vh - 420px)' : 'calc(100vh - 340px)' }">
       <div
-        v-for="(message, index) in promptStore.chatMessages"
+        v-for="(message, index) in promptStore.chatMessages.filter(msg => !msg.isDeleted)"
         :key="message.id || index"
         :class="message.type === 'user' ? 'justify-end' : 'justify-start'"
-        class="flex"
+        class="flex group"
       >
-        <div
-          :class="[
-            message.type === 'user' 
-              ? 'bg-blue-500 text-white' 
-              : message.isProgress 
-                ? 'bg-blue-50 text-blue-800 border border-blue-200' 
-                : 'bg-gray-100 text-gray-800',
-            message.isProgress && 'animate-pulse'
-          ]"
-          class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg transition-all duration-300"
-        >
+        <div class="flex flex-col w-full" :class="message.isEditing ? 'max-w-2xl' : 'max-w-xs lg:max-w-md'">
+          <!-- 消息内容 -->
           <div
-            v-if="message.type === 'ai'"
-            v-html="renderMarkdown(message.content)"
-            class="prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-800 prose-li:text-gray-800 prose-strong:text-gray-800"
-          ></div>
+            :class="[
+              message.isEditing 
+                ? 'bg-white border-2 border-blue-300 shadow-lg' 
+                : message.type === 'user' 
+                  ? 'bg-blue-500 text-white' 
+                  : message.isProgress 
+                    ? 'bg-blue-50 text-blue-800 border border-blue-200' 
+                    : 'bg-gray-100 text-gray-800',
+              message.isProgress && 'animate-pulse',
+              !message.isEditing && (message.type === 'user' ? 'ml-auto' : 'mr-auto')
+            ]"
+            class="px-4 py-3 rounded-lg transition-all duration-300 relative"
+          >
+            <!-- 编辑模式 -->
+            <div v-if="message.isEditing" class="space-y-3">
+              <div class="text-sm text-gray-600 font-medium mb-2">
+                编辑{{ message.type === 'user' ? '用户' : 'AI' }}消息
+              </div>
+              <textarea
+                :ref="(el: any) => setEditTextareaRef(message.id!, el as HTMLTextAreaElement)"
+                v-model="editingContent[message.id!]"
+                class="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 bg-white min-h-[120px] max-h-[300px] overflow-y-auto"
+                @keydown="handleEditKeydown($event, message.id!)"
+                placeholder="编辑消息内容..."
+              ></textarea>
+              <div class="text-xs text-gray-500 mt-1">
+                快捷键：Ctrl+Enter 保存，Escape 取消
+              </div>
+            </div>
+            
+            <!-- 正常显示模式 -->
+            <div v-else>
+              <div
+                v-if="message.type === 'ai'"
+                v-html="renderMarkdown(message.content)"
+                class="prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-800 prose-li:text-gray-800 prose-strong:text-gray-800"
+              ></div>
+              <div 
+                v-else 
+                v-html="renderUserMessage(message.content)"
+                class="text-white [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-white [&_h1]:mb-2 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-white [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-white [&_h3]:mb-1 [&_h4]:text-sm [&_h4]:font-bold [&_h4]:text-white [&_h5]:text-sm [&_h5]:font-bold [&_h5]:text-white [&_h6]:text-sm [&_h6]:font-bold [&_h6]:text-white [&_p]:text-white [&_p]:mb-2 [&_strong]:font-bold [&_strong]:text-white [&_b]:font-bold [&_b]:text-white [&_em]:italic [&_em]:text-white [&_i]:italic [&_i]:text-white [&_ul]:list-disc [&_ul]:list-inside [&_ul]:text-white [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:list-inside [&_ol]:text-white [&_ol]:mb-2 [&_li]:text-white [&_li]:mb-1 [&_code]:bg-blue-600 [&_code]:text-blue-100 [&_code]:px-1 [&_code]:rounded [&_code]:font-mono [&_pre]:bg-blue-600 [&_pre]:text-blue-100 [&_pre]:p-2 [&_pre]:rounded [&_pre]:overflow-x-auto [&_a]:text-blue-200 [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-blue-300 [&_blockquote]:pl-2 [&_blockquote]:text-blue-100"
+              ></div>
+            </div>
+          </div>
+          
+          <!-- 附件列表显示 -->
           <div 
-            v-else 
-            v-html="renderUserMessage(message.content)"
-            class="text-white [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-white [&_h1]:mb-2 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-white [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-white [&_h3]:mb-1 [&_h4]:text-sm [&_h4]:font-bold [&_h4]:text-white [&_h5]:text-sm [&_h5]:font-bold [&_h5]:text-white [&_h6]:text-sm [&_h6]:font-bold [&_h6]:text-white [&_p]:text-white [&_p]:mb-2 [&_strong]:font-bold [&_strong]:text-white [&_b]:font-bold [&_b]:text-white [&_em]:italic [&_em]:text-white [&_i]:italic [&_i]:text-white [&_ul]:list-disc [&_ul]:list-inside [&_ul]:text-white [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:list-inside [&_ol]:text-white [&_ol]:mb-2 [&_li]:text-white [&_li]:mb-1 [&_code]:bg-blue-600 [&_code]:text-blue-100 [&_code]:px-1 [&_code]:rounded [&_code]:font-mono [&_pre]:bg-blue-600 [&_pre]:text-blue-100 [&_pre]:p-2 [&_pre]:rounded [&_pre]:overflow-x-auto [&_a]:text-blue-200 [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-blue-300 [&_blockquote]:pl-2 [&_blockquote]:text-blue-100"
-          ></div>
+            v-if="message.attachments && message.attachments.length > 0 && !message.isEditing"
+            class="mt-2"
+            :class="message.type === 'user' ? 'ml-auto max-w-xs lg:max-w-md' : 'mr-auto max-w-xs lg:max-w-md'"
+          >
+            <div class="text-xs text-gray-500 mb-1">附件 ({{ message.attachments.length }})</div>
+            <!-- 横向滑动容器 -->
+            <div class="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pb-1">
+              <div
+                v-for="attachment in message.attachments"
+                :key="attachment.id"
+                class="flex-shrink-0 flex items-center gap-2 px-2 py-1.5 rounded-md text-xs border min-w-0"
+                :class="message.type === 'user' ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-100'"
+              >
+                <div class="flex items-center gap-2 min-w-0">
+                  <!-- 文件图标 -->
+                  <div class="flex-shrink-0">
+                    <div v-if="attachment.type === 'image'" class="w-3 h-3 text-green-500">🖼️</div>
+                    <div v-else-if="attachment.type === 'document'" class="w-3 h-3 text-blue-500">📄</div>
+                    <div v-else-if="attachment.type === 'audio'" class="w-3 h-3 text-purple-500">🎵</div>
+                    <div v-else-if="attachment.type === 'video'" class="w-3 h-3 text-red-500">🎬</div>
+                    <div v-else class="w-3 h-3 text-gray-500">📎</div>
+                  </div>
+                  <!-- 文件名和大小 -->
+                  <div class="min-w-0 flex-1">
+                    <div 
+                      class="truncate max-w-20 font-medium text-xs"
+                      :class="message.type === 'user' ? 'text-blue-700' : 'text-gray-700'"
+                      :title="attachment.name"
+                    >
+                      {{ attachment.name }}
+                    </div>
+                    <div 
+                      class="text-xs"
+                      :class="message.type === 'user' ? 'text-blue-500' : 'text-gray-500'"
+                    >
+                      {{ (attachment.size / 1024).toFixed(1) }}KB
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 消息操作按钮 -->
+          <div 
+            v-if="!message.isProgress"
+            class="flex space-x-1 mt-2 transition-opacity duration-200"
+            :class="[
+              message.isEditing 
+                ? 'opacity-100 justify-center' 
+                : 'opacity-0 group-hover:opacity-100 ' + (message.type === 'user' ? 'justify-end' : 'justify-start')
+            ]"
+          >
+            <!-- 编辑状态下的按钮 -->
+            <template v-if="message.isEditing">
+              <button
+                @click="saveEdit(message.id!)"
+                class="flex items-center space-x-1 px-3 py-1.5 text-green-600 hover:text-green-800 hover:bg-green-50 transition-colors rounded-lg border border-green-200"
+                title="保存编辑 (Ctrl+Enter)"
+              >
+                <Check class="w-4 h-4" />
+                <span class="text-sm font-medium">保存</span>
+              </button>
+              
+              <button
+                v-if="message.type === 'user'"
+                @click="resendMessage(message.id!)"
+                class="flex items-center space-x-1 px-3 py-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors rounded-lg border border-blue-200"
+                title="保存并重新发送"
+                :disabled="promptStore.isTyping || promptStore.isGenerating"
+              >
+                <Send class="w-4 h-4" />
+                <span class="text-sm font-medium">重新发送</span>
+              </button>
+              
+              <button
+                @click="cancelEdit(message.id!)"
+                class="flex items-center space-x-1 px-3 py-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors rounded-lg border border-gray-200"
+                title="取消编辑 (Escape)"
+              >
+                <X class="w-4 h-4" />
+                <span class="text-sm font-medium">取消</span>
+              </button>
+            </template>
+            
+            <!-- 正常状态下的按钮 -->
+            <template v-else>
+              <!-- 重新生成按钮（仅AI消息） -->
+              <button
+                v-if="message.type === 'ai'"
+                @click="regenerateMessage(message.id!, index)"
+                class="p-1.5 text-gray-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-gray-100"
+                title="重新生成回复"
+                :disabled="promptStore.isTyping || promptStore.isGenerating"
+              >
+                <RefreshCw class="w-3.5 h-3.5" />
+              </button>
+              
+              <!-- 重新发送按钮（仅用户消息） -->
+              <button
+                v-if="message.type === 'user'"
+                @click="resendUserMessage(message.id!, index)"
+                class="p-1.5 text-gray-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-gray-100"
+                title="重新发送消息"
+                :disabled="promptStore.isTyping || promptStore.isGenerating"
+              >
+                <Send class="w-3.5 h-3.5" />
+              </button>
+              
+              <!-- 编辑按钮 -->
+              <button
+                @click="startEdit(message.id!)"
+                class="p-1.5 text-gray-500 hover:text-green-600 transition-colors rounded-lg hover:bg-gray-100"
+                title="编辑消息"
+              >
+                <Edit2 class="w-3.5 h-3.5" />
+              </button>
+              
+              <!-- 删除按钮 -->
+              <button
+                @click="deleteMessage(message.id!)"
+                class="p-1.5 text-gray-500 hover:text-red-600 transition-colors rounded-lg hover:bg-gray-100"
+                title="删除消息"
+              >
+                <Trash2 class="w-3.5 h-3.5" />
+              </button>
+              
+              <!-- 复制按钮 -->
+              <button
+                @click="copyMessage(message.content)"
+                class="p-1.5 text-gray-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-gray-100"
+                title="复制消息内容"
+              >
+                <Copy class="w-3.5 h-3.5" />
+              </button>
+            </template>
+          </div>
         </div>
       </div>
       
@@ -92,15 +264,15 @@
       </div>
     </div>
 
-    <!-- 快速回复选项 - 独立区域，向上扩展 -->
-    <div v-if="shouldShowQuickReplies" class="px-6 py-3 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+    <!-- 快速回复选项 - 在输入区域内部 -->
+    <div v-if="shouldShowQuickReplies" class="px-6 py-3 bg-gray-50 border-b border-gray-200 flex-shrink-0">
       <div class="text-xs text-gray-500 mb-2">快速回复：</div>
       <div class="flex flex-wrap gap-2">
         <button
           v-for="reply in quickReplies"
           :key="reply"
           @click="selectQuickReply(reply)"
-          class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+          class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
         >
           {{ reply }}
         </button>
@@ -108,29 +280,129 @@
     </div>
 
     <!-- Input Area - 固定在底部 -->
-    <div ref="inputContainer" class="p-6 border-t border-gray-200 flex-shrink-0">
-      <div class="flex space-x-2">
-        <textarea
-          ref="textareaRef"
-          v-model="userInput"
-          @keydown="handleKeydown"
-          @compositionstart="handleCompositionStart"
-          @compositionend="handleCompositionEnd"
-          @input="adjustTextareaHeight"
-          @focus="showQuickReplies = true"
-          :placeholder="shouldShowQuickReplies ? '输入或点击上方快速回复...' : '请描述您的需求（Shift+Enter换行）'"
-          :disabled="promptStore.isTyping || promptStore.isGenerating"
-          :style="{ minHeight: '48px', maxHeight: maxTextareaHeight }"
-          class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 text-base resize-none overflow-y-auto transition-all duration-200"
-          rows="1"
-        ></textarea>
-        <button
-          @click="sendMessage"
-          :disabled="!userInput.trim() || promptStore.isTyping || promptStore.isGenerating"
-          class="px-5 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <ArrowRight class="w-4 h-4" />
-        </button>
+    <div ref="inputContainer" class="p-3 border-t border-gray-200 bg-white flex-shrink-0 relative">
+      <!-- 隐藏的文件输入控件 -->
+      <input
+        ref="fileInputRef"
+        type="file"
+        multiple
+        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.csv,.json,.xml,.html,.css,.js,.ts,.py,.java,.c,.cpp,.yaml,.yml"
+        @change="handleFileSelect"
+        class="hidden"
+      />
+      
+      <!-- 附件预览区域（紧凑横向滑动） -->
+      <div v-if="currentAttachments.length > 0" class="mb-3 p-3 bg-gray-50 rounded-lg">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm text-gray-600">已选择 {{ currentAttachments.length }} 个附件</span>
+          <button
+            @click="currentAttachments = []"
+            class="text-xs text-red-500 hover:text-red-700"
+          >
+            清空全部
+          </button>
+        </div>
+        <div class="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <div
+            v-for="attachment in currentAttachments"
+            :key="attachment.id"
+            class="flex-shrink-0 flex items-center gap-2 bg-white px-3 py-2 rounded-md border border-gray-200 min-w-0"
+          >
+            <div class="flex items-center gap-2 min-w-0">
+              <!-- 文件图标 -->
+              <div class="flex-shrink-0">
+                <div v-if="attachment.type === 'image'" class="w-4 h-4 text-green-500">🖼️</div>
+                <div v-else-if="attachment.type === 'document'" class="w-4 h-4 text-blue-500">📄</div>
+                <div v-else-if="attachment.type === 'audio'" class="w-4 h-4 text-purple-500">🎵</div>
+                <div v-else-if="attachment.type === 'video'" class="w-4 h-4 text-red-500">🎬</div>
+                <div v-else class="w-4 h-4 text-gray-500">📎</div>
+              </div>
+              <!-- 文件名和大小 -->
+              <div class="min-w-0 flex-1">
+                <div class="text-xs font-medium text-gray-700 truncate max-w-24" :title="attachment.name">
+                  {{ attachment.name }}
+                </div>
+                <div class="text-xs text-gray-500">
+                  {{ (attachment.size / 1024).toFixed(1) }}KB
+                </div>
+              </div>
+            </div>
+            <!-- 移除按钮 -->
+            <button
+              @click="removeAttachment(attachment.id)"
+              class="flex-shrink-0 w-4 h-4 text-gray-400 hover:text-red-500 transition-colors"
+              title="移除附件"
+            >
+              <X class="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 输入框容器 - 真正的分区设计 -->
+      <div class="relative border border-gray-300 rounded-2xl focus-within:outline-none focus-within:border-gray-300 overflow-hidden" style="height: 120px;">
+        <!-- 文字输入区域容器 - 固定高度，为按钮预留空间 -->
+        <div class="absolute top-0 left-0 right-0" style="bottom: 48px;">
+          <textarea
+            ref="textareaRef"
+            v-model="userInput"
+            @keydown="handleKeydown"
+            @compositionstart="handleCompositionStart"
+            @compositionend="handleCompositionEnd"
+            @input="adjustTextareaHeight"
+            @focus="showQuickReplies = true"
+            :placeholder="shouldShowQuickReplies ? '输入或点击上方快速回复...' : 'Shift+Enter换行'"
+            :disabled="promptStore.isTyping || promptStore.isGenerating"
+            class="w-full h-full px-2 pt-3 pb-1 border-0 outline-none resize-none disabled:opacity-50 text-base overflow-y-auto bg-transparent"
+            rows="1"
+          ></textarea>
+        </div>
+        
+        <!-- 按钮专用区域 - 固定在底部48px -->
+        <div class="absolute bottom-0 left-0 right-0 h-12 flex justify-between items-center px-2 bg-transparent pointer-events-none">
+          <!-- 附件按钮 -->
+          <button
+            @click="triggerFileSelect"
+            class="w-8 h-8 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors flex items-center justify-center pointer-events-auto"
+            title="支持拖拽上传图片、文档、音频等格式，单个文件最大25MB"
+          >
+            <div class="relative">
+              <Paperclip class="w-4 h-4" />
+              <span 
+                v-if="currentAttachments.length > 0" 
+                class="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-3 h-3 flex items-center justify-center"
+                style="font-size: 9px;"
+              >
+                {{ currentAttachments.length }}
+              </span>
+            </div>
+          </button>
+          
+          <!-- 发送按钮 -->
+          <button
+            @click="sendMessage"
+            :disabled="!userInput.trim() || promptStore.isTyping || promptStore.isGenerating"
+            class="w-8 h-8 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center pointer-events-auto"
+          >
+            <ArrowUp class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 全局拖拽覆盖层 -->
+    <div
+      v-if="isGlobalDragging"
+      class="absolute inset-0 bg-blue-50 bg-opacity-90 flex items-center justify-center z-50 border-2 border-dashed border-blue-400 rounded-lg"
+    >
+      <div class="text-center">
+        <Upload class="w-12 h-12 mx-auto mb-4 text-blue-500" />
+        <div class="text-lg font-medium text-blue-700 mb-2">
+          释放文件以上传
+        </div>
+        <div class="text-sm text-blue-600">
+          支持图片、文档、音频等格式
+        </div>
       </div>
     </div>
   </div>
@@ -145,8 +417,10 @@ import { AIGuideService } from '@/services/aiGuideService'
 import { AIService } from '@/services/aiService'
 import { PromptGeneratorService } from '@/services/promptGeneratorService'
 import { getPromptGeneratorConfig } from '@/config/promptGenerator'
-import { ArrowRight, ChevronUp } from 'lucide-vue-next'
+import { ArrowUp, ChevronUp, RefreshCw, Edit2, Trash2, Copy, Check, X, Send, Upload, Paperclip } from 'lucide-vue-next'
 import { marked } from 'marked'
+import { cleanAIResponse, checkAIDecision } from '@/utils/aiResponseUtils'
+import type { MessageAttachment } from '@/stores/promptStore'
 
 // Props
 const props = defineProps<{
@@ -173,6 +447,15 @@ const userInput = ref('')
 const chatContainer = ref<HTMLElement>()
 const inputContainer = ref<HTMLElement>()
 const textareaRef = ref<HTMLTextAreaElement>()
+const fileInputRef = ref<HTMLInputElement>()
+
+// 文件上传相关状态
+const currentAttachments = ref<MessageAttachment[]>([])
+const isGlobalDragging = ref(false)
+
+// 编辑相关状态
+const editingContent = ref<Record<string, string>>({})
+const editTextareaRefs = ref<Record<string, HTMLTextAreaElement | null>>({})
 
 // 流式模式状态
 const isStreamMode = ref(true) // 默认开启流式模式
@@ -180,49 +463,33 @@ const isStreamMode = ref(true) // 默认开启流式模式
 // 输入法组合状态
 const isComposing = ref(false)
 
-// 响应式设计配置
-const isMobileDevice = ref(false)
-const maxTextareaHeight = computed(() => {
-  // PC端最多5行，移动端最多3行，每行约24px
-  const maxLines = isMobileDevice.value ? 3 : 5
-  return `${maxLines * 24 + 24}px` // 24px行高 + 24px padding
-})
-
-// 检测设备类型
-const detectMobileDevice = () => {
-  isMobileDevice.value = window.innerWidth <= 768
-}
-
-// 自动调整textarea高度
+// 自动调整textarea高度 - 简化版本，因为高度现在由容器控制
 const adjustTextareaHeight = () => {
-  const textarea = textareaRef.value
-  if (!textarea) return
-  
-  // 获取当前高度
-  const currentHeight = parseInt(getComputedStyle(textarea).height)
-  
-  // 临时重置高度以获取正确的scrollHeight
-  const originalHeight = textarea.style.height
-  textarea.style.height = 'auto'
-  
-  // 计算新高度
-  const scrollHeight = textarea.scrollHeight
-  const maxHeight = parseInt(maxTextareaHeight.value)
-  const minHeight = 48
-  
-  // 恢复原来的高度
-  textarea.style.height = originalHeight
-  
-  // 只在需要增加高度时才调整，或者当前高度小于最小高度时
-  const idealHeight = Math.min(scrollHeight, maxHeight)
-  if (idealHeight > currentHeight || currentHeight < minHeight) {
-    textarea.style.height = `${idealHeight}px`
-  }
+  // 高度现在由容器的 CSS 控制，不需要动态调整
+  // 保持这个函数是为了兼容性
 }
 
 // 快速回复功能
 const showQuickReplies = ref(false)
-const quickReplies = ref(config.quickReplies)
+
+// 动态计算快捷回复选项，强制触发选项只在第6轮对话后显示（3轮用户输入后）
+const quickReplies = computed(() => {
+  const messageCount = promptStore.chatMessages.length
+  const baseReplies = ['请使用相关最佳实践的推荐建议']
+  
+  // 如果对话轮数大于等于6（表示至少3轮用户输入），添加强制触发选项
+  if (messageCount >= 6) {
+    return [...baseReplies, '强制生成需求报告']
+  }
+  
+  return baseReplies
+})
+
+// 检查是否为强制触发关键词
+const checkForceGenerate = (userInput: string): boolean => {
+  const forceKeywords = ['强制生成需求报告']
+  return forceKeywords.some(keyword => userInput.includes(keyword))
+}
 
 // 切换流式模式
 const toggleStreamMode = () => {
@@ -287,71 +554,6 @@ const renderUserMessage = (content: string): string => {
   }
 }
 
-// AI智能判断检测函数
-const checkAIDecision = (response: string): boolean => {
-  try {
-    // 检查是否包含评估标签
-    const assessmentMatch = response.match(/<ASSESSMENT>([\s\S]*?)<\/ASSESSMENT>/i)
-    if (!assessmentMatch) {
-      return false // 没有评估标签，继续对话
-    }
-    
-    const assessmentContent = assessmentMatch[1]
-    
-    // 提取DECISION字段
-    const decisionMatch = assessmentContent.match(/DECISION:\s*\[([^\]]+)\]/i)
-    if (decisionMatch) {
-      const decision = decisionMatch[1].trim().toUpperCase()
-      return decision === 'END_NOW'
-    }
-    
-    return false
-  } catch (error) {
-    return false // 解析错误时继续对话
-  }
-}
-
-// 清理AI响应中的评估标签
-const cleanAIResponse = (response: string): string => {
-  try {
-    // 移除完整的评估标签及其内容
-    let cleaned = response.replace(/<ASSESSMENT>[\s\S]*?<\/ASSESSMENT>/gi, '').trim()
-    
-    // 处理流式过程中不完整的评估标签
-    // 如果发现开始标签但没有结束标签，截断到开始标签之前
-    const assessmentStart = cleaned.indexOf('<ASSESSMENT>')
-    if (assessmentStart !== -1) {
-      cleaned = cleaned.substring(0, assessmentStart).trim()
-    }
-    
-    // 处理其他可能的不完整标签模式
-    const patterns = [
-      /<ASSE[^>]*$/i,     // 不完整的开始标签
-      /<\/ASSE[^>]*$/i,   // 不完整的结束标签
-      /\n\n<ASSE/i,       // 换行后的开始标签
-      /CONTEXT:/i,        // 评估内容的关键词
-      /TASK:/i,
-      /FORMAT:/i,
-      /QUALITY:/i,
-      /TURN_COUNT:/i,
-      /DECISION:/i,
-      /CONFIDENCE:/i
-    ]
-    
-    for (const pattern of patterns) {
-      const match = cleaned.search(pattern)
-      if (match !== -1) {
-        cleaned = cleaned.substring(0, match).trim()
-        break
-      }
-    }
-    
-    return cleaned
-  } catch (error) {
-    return response // 清理失败时返回原内容
-  }
-}
-
 // 初始化对话（模块化设计）
 const initializeChat = async () => {
   // 加载流式模式设置
@@ -373,15 +575,12 @@ const initializeChat = async () => {
 // 挂载和卸载事件监听器
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
-  window.addEventListener('resize', detectMobileDevice)
-  detectMobileDevice() // 初始检测
   // 初始化对话
   initializeChat()
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('resize', detectMobileDevice)
 })
 
 // 选择快速回复
@@ -410,7 +609,7 @@ let currentStreamingMessageIndex = -1
 // 开始流式消息显示
 const startStreamingMessage = () => {
   promptStore.isTyping = false // 停止thinking状态
-  promptStore.addMessage('ai', '')
+  promptStore.addMessage('ai', '', undefined)
   currentStreamingMessageIndex = promptStore.chatMessages.length - 1
   return currentStreamingMessageIndex
 }
@@ -428,7 +627,7 @@ const simulateTyping = async (message: string, isStreaming: boolean = false) => 
   if (isStreaming) {
     // 流式显示：立即添加空消息，然后逐步更新
     const messageIndex = promptStore.chatMessages.length
-    promptStore.addMessage('ai', '')
+    promptStore.addMessage('ai', '', undefined)
     
     // 逐字符显示效果
     for (let i = 0; i <= message.length; i++) {
@@ -440,13 +639,17 @@ const simulateTyping = async (message: string, isStreaming: boolean = false) => 
     promptStore.isTyping = true
     await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 100))
     promptStore.isTyping = false
-    promptStore.addMessage('ai', message)
+    promptStore.addMessage('ai', message, undefined)
   }
 }
 
 // 发送消息
 const sendMessage = async () => {
+  // 限制：必须有文本内容才能发送，不允许只发送附件
   if (!userInput.value.trim()) {
+    if (currentAttachments.value.length > 0) {
+      notificationStore.warning('请输入消息内容，不能只发送附件')
+    }
     return
   }
   
@@ -460,14 +663,41 @@ const sendMessage = async () => {
   }
 
   const currentInput = userInput.value
-  promptStore.addMessage('user', currentInput)
+  const attachments = [...currentAttachments.value]
+  
+  console.log('[ChatInterface] Sending message with attachments:', {
+    hasInput: !!currentInput.trim(),
+    attachmentCount: attachments.length,
+    attachments: attachments.map(att => ({ name: att.name, type: att.type, size: att.size, hasData: !!att.data }))
+  })
+  
+  // 检查是否为强制触发关键词
+  const isForceGenerate = checkForceGenerate(currentInput)
+  
+  // 添加用户消息（包含附件）
+  promptStore.addMessage('user', currentInput, attachments)
+  
+  // 清空输入和附件
   userInput.value = ''
+  currentAttachments.value = []
   showQuickReplies.value = false // 发送后隐藏快速回复
   
   // 立即重置textarea高度到默认值
   const textarea = textareaRef.value
   if (textarea) {
-    textarea.style.height = '48px'
+    textarea.style.height = '80px'
+  }
+  
+  // 如果是强制触发，直接生成需求报告
+  if (isForceGenerate) {
+    console.log('[ChatInterface] Force generate triggered by user input')
+    // 显示确认消息
+    await simulateTyping('好的，我将立即为您生成需求报告。', false)
+    
+    setTimeout(async () => {
+      await generatePrompt(provider, model.id)
+    }, 800)
+    return
   }
 
   // 立即显示AI正在思考的状态
@@ -498,10 +728,37 @@ const sendMessage = async () => {
         scrollToBottom()
       })
       
-      // 调用流式API
+      // 调用流式API - 使用有效消息（排除被删除的消息）
+      const validMessages = promptStore.getValidMessages()
+      console.log('[ChatInterface] Valid messages from store:', {
+        count: validMessages.length,
+        messages: validMessages.map(msg => ({
+          type: msg.type,
+          hasAttachments: !!(msg.attachments && msg.attachments.length > 0),
+          attachmentCount: msg.attachments?.length || 0,
+          attachments: msg.attachments?.map(att => ({ name: att.name, type: att.type, size: att.size }))
+        }))
+      })
+      
+      const conversationHistory = validMessages.map(msg => ({
+        type: msg.type,
+        content: msg.content,
+        attachments: msg.attachments || []
+      }))
+      
+      console.log('[ChatInterface] Conversation history for AI service:', {
+        count: conversationHistory.length,
+        withAttachments: conversationHistory.filter(msg => msg.attachments && msg.attachments.length > 0).length,
+        details: conversationHistory.map(msg => ({
+          type: msg.type,
+          hasAttachments: !!(msg.attachments && msg.attachments.length > 0),
+          attachmentCount: msg.attachments?.length || 0
+        }))
+      })
+      
       const aiResponse = await aiGuideService.generateSimpleResponse(
-        '', // 用户消息已在chatMessages中，避免重复
-        promptStore.chatMessages,
+        '', // 用户消息已在validMessages中，避免重复
+        conversationHistory,
         provider,
         model.id,
         useStreamMode
@@ -509,6 +766,20 @@ const sendMessage = async () => {
 
       // 清理流式回调
       aiService.clearStreamUpdateCallback()
+
+      // 如果是流式模式但没有通过回调更新消息（可能是降级到非流式）
+      if (useStreamMode && messageIndex === -1) {
+        console.log('[ChatInterface] Stream mode fallback detected, updating message directly')
+        // 直接更新消息，因为流式回调没有被触发
+        messageIndex = startStreamingMessage()
+        const cleanContent = cleanAIResponse(aiResponse)
+        updateStreamingMessage(cleanContent)
+      } else if (useStreamMode && streamingContent.trim() === '') {
+        console.log('[ChatInterface] Stream mode with empty content, updating with final response')
+        // 流式回调被触发但内容为空，使用最终响应
+        const cleanContent = cleanAIResponse(aiResponse)
+        updateStreamingMessage(cleanContent)
+      }
 
       // AI智能判断检测
       const shouldEndConversation = checkAIDecision(aiResponse)
@@ -519,10 +790,16 @@ const sendMessage = async () => {
         }, 800)
       }
     } else {
-      // 非流式模式
+      // 非流式模式 - 使用有效消息（排除被删除的消息）
+      const validMessages = promptStore.getValidMessages()
+      const conversationHistory = validMessages.map(msg => ({
+        type: msg.type,
+        content: msg.content,
+        attachments: msg.attachments || []
+      }))
       const aiResponse = await aiGuideService.generateSimpleResponse(
-        '', // 用户消息已在chatMessages中，避免重复
-        promptStore.chatMessages,
+        '', // 用户消息已在validMessages中，避免重复
+        conversationHistory,
         provider,
         model.id,
         useStreamMode
@@ -564,8 +841,9 @@ const sendMessage = async () => {
 const generatePrompt = async (provider: any, modelId: string) => {
   try {
 
-    // 生成需求报告
-    const conversationHistory = promptStore.chatMessages.map(msg => ({
+    // 生成需求报告 - 使用有效消息（排除被删除的消息）
+    const validMessages = promptStore.getValidMessages()
+    const conversationHistory = validMessages.map(msg => ({
       type: msg.type,
       content: msg.content
     }))
@@ -682,11 +960,112 @@ const clearChat = () => {
   promptStore.clearChat()
   showQuickReplies.value = false // 重置快速回复状态
   
+  // 清空文件上传
+  currentAttachments.value = []
+  
   // 复用初始化逻辑
   setTimeout(async () => {
     await simulateTyping(config.welcomeMessage, false)
     promptStore.isInitialized = true
   }, 500)
+}
+
+// 文件上传相关方法
+// 触发文件选择
+const triggerFileSelect = () => {
+  if (fileInputRef.value) {
+    fileInputRef.value.click()
+  }
+}
+
+// 处理文件选择
+const handleFileSelect = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const files = Array.from(target.files || [])
+  
+  if (files.length > 0) {
+    try {
+      const { processFiles } = await import('@/utils/fileUtils')
+      const result = await processFiles(files)
+      
+      if (result.attachments.length > 0) {
+        currentAttachments.value.push(...result.attachments)
+      }
+      
+      if (result.errors.length > 0) {
+        result.errors.forEach(error => notificationStore.error(error))
+      }
+    } catch (error) {
+      notificationStore.error('文件处理失败')
+    }
+    
+    // 清空input值，允许重复选择相同文件
+    target.value = ''
+  }
+}
+
+// 移除附件
+const removeAttachment = (attachmentId: string) => {
+  const index = currentAttachments.value.findIndex(att => att.id === attachmentId)
+  if (index !== -1) {
+    currentAttachments.value.splice(index, 1)
+  }
+}
+
+// 全局拖拽处理方法
+const handleGlobalDragEnter = (event: DragEvent) => {
+  event.preventDefault()
+  if (event.dataTransfer?.items) {
+    // 检查是否包含文件
+    for (let i = 0; i < event.dataTransfer.items.length; i++) {
+      if (event.dataTransfer.items[i].kind === 'file') {
+        isGlobalDragging.value = true
+        break
+      }
+    }
+  }
+}
+
+const handleGlobalDragOver = (event: DragEvent) => {
+  event.preventDefault()
+  isGlobalDragging.value = true
+}
+
+const handleGlobalDragLeave = (event: DragEvent) => {
+  event.preventDefault()
+  // 检查是否真的离开了整个聊天区域
+  const target = event.currentTarget as HTMLElement
+  const rect = target.getBoundingClientRect()
+  const x = event.clientX
+  const y = event.clientY
+  
+  if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+    isGlobalDragging.value = false
+  }
+}
+
+const handleGlobalDrop = async (event: DragEvent) => {
+  event.preventDefault()
+  isGlobalDragging.value = false
+  
+  const files = Array.from(event.dataTransfer?.files || [])
+  if (files.length > 0) {
+    // 处理文件
+    try {
+      const { processFiles } = await import('@/utils/fileUtils')
+      const result = await processFiles(files)
+      
+      if (result.attachments.length > 0) {
+        currentAttachments.value.push(...result.attachments)
+      }
+      
+      if (result.errors.length > 0) {
+        result.errors.forEach(error => notificationStore.error(error))
+      }
+    } catch (error) {
+      notificationStore.error('文件处理失败')
+    }
+  }
 }
 
 // 输入法组合事件处理
@@ -713,6 +1092,445 @@ const handleKeydown = (event: KeyboardEvent) => {
       event.preventDefault()
       sendMessage()
     }
+  }
+}
+
+// 消息操作方法
+const setEditTextareaRef = (messageId: string, el: HTMLTextAreaElement | null) => {
+  if (el) {
+    editTextareaRefs.value[messageId] = el
+  }
+}
+
+const startEdit = (messageId: string) => {
+  const message = promptStore.chatMessages.find(msg => msg.id === messageId)
+  if (message) {
+    editingContent.value[messageId] = message.content
+    promptStore.startEditMessage(messageId)
+    
+    // 下一帧聚焦到编辑框
+    nextTick(() => {
+      const textarea = editTextareaRefs.value[messageId]
+      if (textarea) {
+        textarea.focus()
+        textarea.select()
+      }
+    })
+  }
+}
+
+const saveEdit = (messageId: string) => {
+  const newContent = editingContent.value[messageId]
+  if (newContent !== undefined && newContent.trim()) {
+    promptStore.saveEditMessage(messageId, newContent)
+    delete editingContent.value[messageId]
+    delete editTextareaRefs.value[messageId]
+  } else {
+    notificationStore.warning('消息内容不能为空')
+  }
+}
+
+const cancelEdit = (messageId: string) => {
+  promptStore.cancelEditMessage(messageId)
+  delete editingContent.value[messageId]
+  delete editTextareaRefs.value[messageId]
+}
+
+const deleteMessage = (messageId: string) => {
+  if (confirm('确定要删除这条消息吗？删除后该消息将不会在后续的AI对话中被考虑。')) {
+    promptStore.deleteMessage(messageId)
+    notificationStore.success('消息已删除')
+  }
+}
+
+const copyMessage = async (content: string) => {
+  try {
+    await navigator.clipboard.writeText(content)
+    notificationStore.success('已复制到剪贴板')
+  } catch (error) {
+    // 降级方案
+    const textArea = document.createElement('textarea')
+    textArea.value = content
+    document.body.appendChild(textArea)
+    textArea.select()
+    try {
+      document.execCommand('copy')
+      notificationStore.success('已复制到剪贴板')
+    } catch (fallbackError) {
+      notificationStore.error('复制失败，请手动选择复制')
+    }
+    document.body.removeChild(textArea)
+  }
+}
+
+const regenerateMessage = async (messageId: string, messageIndex: number) => {
+  const message = promptStore.chatMessages.find(msg => msg.id === messageId)
+  if (!message || message.type !== 'ai') {
+    return
+  }
+
+  // 检查是否配置了AI模型
+  const provider = settingsStore.getCurrentProvider()
+  const model = settingsStore.getCurrentModel()
+  
+  if (!provider || !model) {
+    notificationStore.warning('请先在右上角设置中配置AI模型和API密钥')
+    return
+  }
+
+  try {
+    // 获取该消息之前的所有有效消息作为上下文
+    const contextMessages = promptStore.getValidMessages().slice(0, messageIndex)
+    const conversationHistory = contextMessages.map(msg => ({
+      type: msg.type,
+      content: msg.content,
+      attachments: msg.attachments || []
+    }))
+    
+    // 开始重新生成
+    promptStore.isTyping = true
+    
+    if (isStreamMode.value) {
+      // 流式模式重新生成
+      const aiService = AIService.getInstance()
+      
+      let streamingContent = ''
+      
+      // 设置流式回调函数
+      aiService.setStreamUpdateCallback((chunk: string) => {
+        streamingContent += chunk
+        const cleanContent = cleanAIResponse(streamingContent)
+        promptStore.updateMessage(messageId, cleanContent)
+        scrollToBottom()
+      })
+      
+      // 调用流式API
+      const aiResponse = await aiGuideService.generateSimpleResponse(
+        '', // 用户消息已在contextMessages中
+        conversationHistory,
+        provider,
+        model.id,
+        true
+      )
+
+      // 清理流式回调
+      aiService.clearStreamUpdateCallback()
+      
+      // 确保最终内容正确
+      const finalContent = cleanAIResponse(aiResponse)
+      promptStore.updateMessage(messageId, finalContent)
+      
+    } else {
+      // 非流式模式重新生成
+      const aiResponse = await aiGuideService.generateSimpleResponse(
+        '',
+        conversationHistory,
+        provider,
+        model.id,
+        false
+      )
+      
+      const cleanResponse = cleanAIResponse(aiResponse)
+      promptStore.updateMessage(messageId, cleanResponse)
+    }
+    
+    promptStore.isTyping = false
+    notificationStore.success('消息已重新生成')
+    
+  } catch (error: unknown) {
+    promptStore.isTyping = false
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    notificationStore.error(`重新生成失败: ${errorMessage}`)
+    
+    // 清理流式回调（如果是流式模式）
+    if (isStreamMode.value) {
+      const aiService = AIService.getInstance()
+      aiService.clearStreamUpdateCallback()
+    }
+  }
+}
+
+const resendMessage = async (messageId: string) => {
+  const message = promptStore.chatMessages.find(msg => msg.id === messageId)
+  if (!message || message.type !== 'user') {
+    return
+  }
+
+  // 检查是否配置了AI模型
+  const provider = settingsStore.getCurrentProvider()
+  const model = settingsStore.getCurrentModel()
+  
+  if (!provider || !model) {
+    notificationStore.warning('请先在右上角设置中配置AI模型和API密钥')
+    return
+  }
+
+  // 先保存编辑
+  const newContent = editingContent.value[messageId]
+  if (newContent !== undefined && newContent.trim()) {
+    promptStore.saveEditMessage(messageId, newContent)
+    delete editingContent.value[messageId]
+    delete editTextareaRefs.value[messageId]
+    
+    // 删除该用户消息之后的所有消息（包括AI回复）
+    const messageIndex = promptStore.chatMessages.findIndex(msg => msg.id === messageId)
+    if (messageIndex !== -1) {
+      // 标记后续消息为删除状态
+      for (let i = messageIndex + 1; i < promptStore.chatMessages.length; i++) {
+        const msg = promptStore.chatMessages[i]
+        if (msg && !msg.isProgress) {
+          promptStore.deleteMessage(msg.id!)
+        }
+      }
+    }
+
+    // 重新发送消息，触发AI回复
+    try {
+      // 立即显示AI正在思考的状态
+      promptStore.isTyping = true
+
+      // 根据用户设置使用流式或非流式模式
+      const useStreamMode = isStreamMode.value
+      
+      if (useStreamMode) {
+        // 流式模式
+        const aiService = AIService.getInstance()
+        
+        // 准备流式显示
+        let streamingContent = ''
+        let messageIndex = -1
+        
+        // 设置流式回调函数
+        aiService.setStreamUpdateCallback((chunk: string) => {
+          if (messageIndex === -1) {
+            // 第一次收到数据，创建消息
+            messageIndex = startStreamingMessage()
+          }
+          streamingContent += chunk
+          // 清理评估标签后显示内容
+          const cleanContent = cleanAIResponse(streamingContent)
+          updateStreamingMessage(cleanContent)
+          scrollToBottom()
+        })
+        
+        // 获取有效消息并调用API
+        const validMessages = promptStore.getValidMessages()
+        const conversationHistory = validMessages.map(msg => ({
+          type: msg.type,
+          content: msg.content,
+          attachments: msg.attachments || []
+        }))
+        const aiResponse = await aiGuideService.generateSimpleResponse(
+          '',
+          conversationHistory,
+          provider,
+          model.id,
+          useStreamMode
+        )
+
+        // 清理流式回调
+        aiService.clearStreamUpdateCallback()
+
+        // AI智能判断检测
+        const shouldEndConversation = checkAIDecision(aiResponse)
+        
+        if (shouldEndConversation || aiResponse.includes('基于我们的对话，我现在为您生成需求报告：')) {
+          setTimeout(async () => {
+            await generatePrompt(provider, model.id)
+          }, 800)
+        }
+      } else {
+        // 非流式模式
+        const validMessages = promptStore.getValidMessages()
+        const conversationHistory = validMessages.map(msg => ({
+          type: msg.type,
+          content: msg.content,
+          attachments: msg.attachments || []
+        }))
+        const aiResponse = await aiGuideService.generateSimpleResponse(
+          '',
+          conversationHistory,
+          provider,
+          model.id,
+          useStreamMode
+        )
+
+        // AI智能判断检测
+        const shouldEndConversation = checkAIDecision(aiResponse)
+        
+        if (shouldEndConversation || aiResponse.includes('基于我们的对话，我现在为您生成需求报告：')) {
+          // 清理响应中的评估标签，只显示用户可见内容
+          const cleanResponse = cleanAIResponse(aiResponse)
+          await simulateTyping(cleanResponse, false)
+          
+          setTimeout(async () => {
+            await generatePrompt(provider, model.id)
+          }, 800)
+        } else {
+          // 正常回复 - 清理评估标签
+          const cleanResponse = cleanAIResponse(aiResponse)
+          await simulateTyping(cleanResponse, false)
+        }
+      }
+      
+      notificationStore.success('消息已重新发送')
+      
+    } catch (error: unknown) {
+      promptStore.isTyping = false
+      promptStore.isGenerating = false
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      notificationStore.error(`重新发送失败: ${errorMessage}`)
+      
+      // 清理流式回调（如果是流式模式）
+      if (isStreamMode.value) {
+        const aiService = AIService.getInstance()
+        aiService.clearStreamUpdateCallback()
+      }
+    }
+  } else {
+    notificationStore.warning('消息内容不能为空')
+  }
+}
+
+// 重新发送用户消息（新方法，清理后续消息）
+const resendUserMessage = async (messageId: string, messageIndex: number) => {
+  const message = promptStore.chatMessages.find(msg => msg.id === messageId)
+  if (!message || message.type !== 'user') {
+    return
+  }
+
+  // 检查是否配置了AI模型
+  const provider = settingsStore.getCurrentProvider()
+  const model = settingsStore.getCurrentModel()
+  
+  if (!provider || !model) {
+    notificationStore.warning('请先在右上角设置中配置AI模型和API密钥')
+    return
+  }
+
+  try {
+    // 删除该用户消息之后的所有消息（包括AI回复）
+    if (messageIndex !== -1) {
+      // 标记后续消息为删除状态
+      for (let i = messageIndex + 1; i < promptStore.chatMessages.length; i++) {
+        const msg = promptStore.chatMessages[i]
+        if (msg && !msg.isProgress) {
+          promptStore.deleteMessage(msg.id!)
+        }
+      }
+    }
+
+    // 重新发送消息，触发AI回复
+    // 立即显示AI正在思考的状态
+    promptStore.isTyping = true
+
+    // 根据用户设置使用流式或非流式模式
+    const useStreamMode = isStreamMode.value
+    
+    if (useStreamMode) {
+      // 流式模式
+      const aiService = AIService.getInstance()
+      
+      // 准备流式显示
+      let streamingContent = ''
+      let messageIndex = -1
+      
+      // 设置流式回调函数
+      aiService.setStreamUpdateCallback((chunk: string) => {
+        if (messageIndex === -1) {
+          // 第一次收到数据，创建消息
+          messageIndex = startStreamingMessage()
+        }
+        streamingContent += chunk
+        // 清理评估标签后显示内容
+        const cleanContent = cleanAIResponse(streamingContent)
+        updateStreamingMessage(cleanContent)
+        scrollToBottom()
+      })
+      
+      // 获取有效消息并调用API
+      const validMessages = promptStore.getValidMessages()
+      const conversationHistory = validMessages.map(msg => ({
+        type: msg.type,
+        content: msg.content,
+        attachments: msg.attachments || []
+      }))
+      const aiResponse = await aiGuideService.generateSimpleResponse(
+        '',
+        conversationHistory,
+        provider,
+        model.id,
+        useStreamMode
+      )
+
+      // 清理流式回调
+      aiService.clearStreamUpdateCallback()
+
+      // AI智能判断检测
+      const shouldEndConversation = checkAIDecision(aiResponse)
+      
+      if (shouldEndConversation || aiResponse.includes('基于我们的对话，我现在为您生成需求报告：')) {
+        setTimeout(async () => {
+          await generatePrompt(provider, model.id)
+        }, 800)
+      }
+    } else {
+      // 非流式模式
+      const validMessages = promptStore.getValidMessages()
+      const conversationHistory = validMessages.map(msg => ({
+        type: msg.type,
+        content: msg.content,
+        attachments: msg.attachments || []
+      }))
+      const aiResponse = await aiGuideService.generateSimpleResponse(
+        '',
+        conversationHistory,
+        provider,
+        model.id,
+        useStreamMode
+      )
+
+      // AI智能判断检测
+      const shouldEndConversation = checkAIDecision(aiResponse)
+      
+      if (shouldEndConversation || aiResponse.includes('基于我们的对话，我现在为您生成需求报告：')) {
+        // 清理响应中的评估标签，只显示用户可见内容
+        const cleanResponse = cleanAIResponse(aiResponse)
+        await simulateTyping(cleanResponse, false)
+        
+        setTimeout(async () => {
+          await generatePrompt(provider, model.id)
+        }, 800)
+      } else {
+        // 正常回复 - 清理评估标签
+        const cleanResponse = cleanAIResponse(aiResponse)
+        await simulateTyping(cleanResponse, false)
+      }
+    }
+    
+    notificationStore.success('消息已重新发送')
+    
+  } catch (error: unknown) {
+    promptStore.isTyping = false
+    promptStore.isGenerating = false
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    notificationStore.error(`重新发送失败: ${errorMessage}`)
+    
+    // 清理流式回调（如果是流式模式）
+    if (isStreamMode.value) {
+      const aiService = AIService.getInstance()
+      aiService.clearStreamUpdateCallback()
+    }
+  }
+}
+
+const handleEditKeydown = (event: KeyboardEvent, messageId: string) => {
+  if (event.key === 'Enter' && event.ctrlKey) {
+    event.preventDefault()
+    saveEdit(messageId)
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    cancelEdit(messageId)
   }
 }
 </script>

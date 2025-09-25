@@ -1,12 +1,26 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+export interface MessageAttachment {
+  id: string
+  name: string
+  type: 'image' | 'document' | 'audio' | 'video'
+  mimeType: string
+  size: number
+  data: string // Base64编码的文件数据
+  url?: string // 用于预览的临时URL（如果需要）
+}
+
 export interface ChatMessage {
   id?: string  // 消息ID，用于更新消息
   type: 'user' | 'ai'
   content: string
   timestamp: string
   isProgress?: boolean  // 标记是否为进度消息
+  isDeleted?: boolean   // 标记是否被删除
+  isEditing?: boolean   // 标记是否正在编辑
+  originalContent?: string  // 编辑时保存原始内容
+  attachments?: MessageAttachment[]  // 附件列表
 }
 
 export interface CollectedData {
@@ -97,14 +111,23 @@ export const usePromptStore = defineStore('prompt', () => {
     }
   ]
 
-  const addMessage = (type: 'user' | 'ai', content: string, options?: { id?: string, isProgress?: boolean }) => {
+  const addMessage = (type: 'user' | 'ai', content: string, attachments?: MessageAttachment[], options?: { id?: string, isProgress?: boolean }) => {
     const message: ChatMessage = {
       id: options?.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type,
       content,
       timestamp: new Date().toISOString(),
-      isProgress: options?.isProgress || false
+      isProgress: options?.isProgress || false,
+      attachments: attachments && attachments.length > 0 ? attachments : []
     }
+    
+    console.log('[PromptStore] Adding message:', {
+      type: message.type,
+      hasContent: !!message.content,
+      attachmentCount: message.attachments?.length || 0,
+      attachments: message.attachments?.map(att => ({ name: att.name, type: att.type, size: att.size, hasData: !!att.data }))
+    })
+    
     chatMessages.value.push(message)
     
     // 如果是用户消息，增加当前步骤计数
@@ -123,7 +146,7 @@ export const usePromptStore = defineStore('prompt', () => {
       chatMessages.value[existingIndex].timestamp = new Date().toISOString()
     } else {
       // 添加新的进度消息
-      addMessage('ai', content, { id: messageId, isProgress: true })
+      addMessage('ai', content, undefined, { id: messageId, isProgress: true })
     }
   }
 
@@ -169,6 +192,54 @@ export const usePromptStore = defineStore('prompt', () => {
     }
   }
 
+  // 消息操作方法
+  const deleteMessage = (messageId: string) => {
+    const message = chatMessages.value.find(msg => msg.id === messageId)
+    if (message) {
+      message.isDeleted = true
+    }
+  }
+
+  const startEditMessage = (messageId: string) => {
+    const message = chatMessages.value.find(msg => msg.id === messageId)
+    if (message) {
+      message.isEditing = true
+      message.originalContent = message.content
+    }
+  }
+
+  const saveEditMessage = (messageId: string, newContent: string) => {
+    const message = chatMessages.value.find(msg => msg.id === messageId)
+    if (message) {
+      message.content = newContent.trim()
+      message.isEditing = false
+      message.originalContent = undefined
+      message.timestamp = new Date().toISOString()
+    }
+  }
+
+  const cancelEditMessage = (messageId: string) => {
+    const message = chatMessages.value.find(msg => msg.id === messageId)
+    if (message && message.originalContent !== undefined) {
+      message.content = message.originalContent
+      message.isEditing = false
+      message.originalContent = undefined
+    }
+  }
+
+  const updateMessage = (messageId: string, newContent: string) => {
+    const message = chatMessages.value.find(msg => msg.id === messageId)
+    if (message) {
+      message.content = newContent
+      message.timestamp = new Date().toISOString()
+    }
+  }
+
+  // 获取有效消息（未被删除的消息），用于API调用
+  const getValidMessages = (): ChatMessage[] => {
+    return chatMessages.value.filter(msg => !msg.isDeleted && !msg.isProgress)
+  }
+
   return {
     currentStep,
     currentStepUserMessages,
@@ -187,6 +258,13 @@ export const usePromptStore = defineStore('prompt', () => {
     addOrUpdateProgressMessage,
     clearChat,
     nextStep,
-    updateCollectedData
+    updateCollectedData,
+    // 消息操作方法
+    deleteMessage,
+    startEditMessage,
+    saveEditMessage,
+    cancelEditMessage,
+    updateMessage,
+    getValidMessages
   }
 })

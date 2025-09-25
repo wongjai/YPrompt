@@ -20,7 +20,8 @@ export const DEFAULT_PROMPT_GENERATOR_CONFIG: PromptGeneratorConfig = {
   welcomeMessage: "您好！我是提示词工程专家，将通过几个问题帮您构建一个高质量的AI提示词。请先告诉我：您希望用AI来解决什么问题或完成什么任务？",
   
   quickReplies: [
-    '请使用相关最佳实践的推荐建议'
+    '请使用相关最佳实践的推荐建议',
+    '强制生成需求报告'
   ],
   
   maxConversationTurns: 5,

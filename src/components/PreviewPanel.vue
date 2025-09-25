@@ -102,20 +102,30 @@
       <div v-if="activeTab === 'report'" class="border rounded-lg overflow-hidden flex flex-col flex-1">
         <div class="bg-orange-50 px-3 py-2 text-sm font-medium text-orange-700 flex items-center justify-between flex-shrink-0">
           <span>需求描述</span>
-          <button
-            @click="copyToClipboard(promptStore.promptData.requirementReport, 'report')"
-            class="text-orange-500 hover:text-orange-600"
-            title="复制到剪贴板"
-          >
-            <Check v-if="copyStatus['report']" class="w-4 h-4" />
-            <Copy v-else class="w-4 h-4" />
-          </button>
+          <div class="flex items-center space-x-2">
+            <button
+              @click="regenerateRequirementReport"
+              :disabled="isExecuting || promptStore.isGenerating"
+              class="text-orange-500 hover:text-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="重新生成需求描述"
+            >
+              <RefreshCw :class="['w-4 h-4', (isExecuting && promptStore.currentExecutionStep === 'report') && 'animate-spin']" />
+            </button>
+            <button
+              @click="copyToClipboard(promptStore.promptData.requirementReport, 'report')"
+              class="text-orange-500 hover:text-orange-600"
+              title="复制到剪贴板"
+            >
+              <Check v-if="copyStatus['report']" class="w-4 h-4" />
+              <Copy v-else class="w-4 h-4" />
+            </button>
+          </div>
         </div>
         <div class="p-3 bg-white flex-1 flex flex-col overflow-hidden">
           <textarea
             v-model="promptStore.promptData.requirementReport"
             :placeholder="hasConversationData ? '基于对话生成的需求描述...' : '请直接描述您的需求，例如：我需要一个专业的代码审查助手，能够分析代码质量、发现潜在问题并提供改进建议...'"
-            class="w-full flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+            class="w-full flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-300 focus:ring-0 resize-none"
           ></textarea>
           
           <!-- 执行按钮 - 固定在底部 -->
@@ -151,14 +161,24 @@
       <div v-if="activeTab === 'thinking'" class="border rounded-lg overflow-hidden flex flex-col flex-1 min-h-0">
         <div class="bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 flex items-center justify-between flex-shrink-0">
           <span>关键指令 (GPrompt步骤1)</span>
-          <button
-            @click="copyToClipboard(promptStore.promptData.thinkingPoints?.join('\\n') || '', 'thinking')"
-            class="text-purple-500 hover:text-purple-600"
-            title="复制到剪贴板"
-          >
-            <Check v-if="copyStatus['thinking']" class="w-4 h-4" />
-            <Copy v-else class="w-4 h-4" />
-          </button>
+          <div class="flex items-center space-x-2">
+            <button
+              @click="regenerateThinkingPoints"
+              :disabled="isExecuting || promptStore.isGenerating"
+              class="text-purple-500 hover:text-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="重新生成关键指令"
+            >
+              <RefreshCw :class="['w-4 h-4', (isExecuting && promptStore.currentExecutionStep === 'thinking') && 'animate-spin']" />
+            </button>
+            <button
+              @click="copyToClipboard(promptStore.promptData.thinkingPoints?.join('\\n') || '', 'thinking')"
+              class="text-purple-500 hover:text-purple-600"
+              title="复制到剪贴板"
+            >
+              <Check v-if="copyStatus['thinking']" class="w-4 h-4" />
+              <Copy v-else class="w-4 h-4" />
+            </button>
+          </div>
         </div>
         <div class="bg-white flex flex-col" :class="isMobile ? 'flex-1 min-h-0' : 'p-3 flex-1'">          <div class="space-y-2 overflow-y-auto flex-1" :class="isMobile ? 'p-3' : ''" :style="isMobile ? '' : 'max-height: calc(100vh - 400px);'">
             <div 
@@ -209,14 +229,24 @@
       <div v-if="activeTab === 'initial'" class="border rounded-lg overflow-hidden flex flex-col flex-1">
         <div class="bg-green-50 px-3 py-2 text-sm font-medium text-green-700 flex items-center justify-between flex-shrink-0">
           <span>初始提示词 (GPrompt步骤2)</span>
-          <button
-            @click="copyToClipboard(promptStore.promptData.initialPrompt || '', 'initial')"
-            class="text-green-500 hover:text-green-600"
-            title="复制到剪贴板"
-          >
-            <Check v-if="copyStatus['initial']" class="w-4 h-4" />
-            <Copy v-else class="w-4 h-4" />
-          </button>
+          <div class="flex items-center space-x-2">
+            <button
+              @click="regenerateInitialPrompt"
+              :disabled="isExecuting || promptStore.isGenerating"
+              class="text-green-500 hover:text-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="重新生成初始提示词"
+            >
+              <RefreshCw :class="['w-4 h-4', (isExecuting && promptStore.currentExecutionStep === 'initial') && 'animate-spin']" />
+            </button>
+            <button
+              @click="copyToClipboard(promptStore.promptData.initialPrompt || '', 'initial')"
+              class="text-green-500 hover:text-green-600"
+              title="复制到剪贴板"
+            >
+              <Check v-if="copyStatus['initial']" class="w-4 h-4" />
+              <Copy v-else class="w-4 h-4" />
+            </button>
+          </div>
         </div>
         <div class="p-3 bg-white flex-1 flex flex-col overflow-hidden">
           <textarea
@@ -242,14 +272,24 @@
       <div v-if="activeTab === 'advice'" class="border rounded-lg overflow-hidden flex flex-col flex-1 min-h-0">
         <div class="bg-yellow-50 px-3 py-2 text-sm font-medium text-yellow-700 flex items-center justify-between flex-shrink-0">
           <span>优化建议 (GPrompt步骤3)</span>
-          <button
-            @click="copyToClipboard(promptStore.promptData.advice?.join('\\n') || '', 'advice')"
-            class="text-yellow-500 hover:text-yellow-600"
-            title="复制到剪贴板"
-          >
-            <Check v-if="copyStatus['advice']" class="w-4 h-4" />
-            <Copy v-else class="w-4 h-4" />
-          </button>
+          <div class="flex items-center space-x-2">
+            <button
+              @click="regenerateAdvice"
+              :disabled="isExecuting || promptStore.isGenerating"
+              class="text-yellow-500 hover:text-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="重新生成优化建议"
+            >
+              <RefreshCw :class="['w-4 h-4', (isExecuting && promptStore.currentExecutionStep === 'advice') && 'animate-spin']" />
+            </button>
+            <button
+              @click="copyToClipboard(promptStore.promptData.advice?.join('\\n') || '', 'advice')"
+              class="text-yellow-500 hover:text-yellow-600"
+              title="复制到剪贴板"
+            >
+              <Check v-if="copyStatus['advice']" class="w-4 h-4" />
+              <Copy v-else class="w-4 h-4" />
+            </button>
+          </div>
         </div>
         <div class="bg-white flex flex-col" :class="isMobile ? 'flex-1 min-h-0' : 'p-3 flex-1'">
           <div class="space-y-2 overflow-y-auto flex-1" :class="isMobile ? 'p-3' : ''" :style="isMobile ? '' : 'max-height: calc(100vh - 400px);'">
@@ -301,14 +341,24 @@
       <div v-if="activeTab === 'zh'" class="border rounded-lg overflow-hidden flex flex-col flex-1">
         <div class="bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 flex items-center justify-between flex-shrink-0">
           <span>最终提示词 (GPrompt步骤4)</span>
-          <button
-            @click="copyToClipboard(currentGeneratedPrompt, 'final')"
-            class="text-blue-500 hover:text-blue-600"
-            title="复制到剪贴板"
-          >
-            <Check v-if="copyStatus['final']" class="w-4 h-4" />
-            <Copy v-else class="w-4 h-4" />
-          </button>
+          <div class="flex items-center space-x-2">
+            <button
+              @click="regenerateFinalPrompt"
+              :disabled="isExecuting || promptStore.isGenerating"
+              class="text-blue-500 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="重新生成最终提示词"
+            >
+              <RefreshCw :class="['w-4 h-4', (isExecuting && promptStore.currentExecutionStep === 'final') && 'animate-spin']" />
+            </button>
+            <button
+              @click="copyToClipboard(currentGeneratedPrompt, 'final')"
+              class="text-blue-500 hover:text-blue-600"
+              title="复制到剪贴板"
+            >
+              <Check v-if="copyStatus['final']" class="w-4 h-4" />
+              <Copy v-else class="w-4 h-4" />
+            </button>
+          </div>
         </div>
         <div class="p-3 bg-white flex-1 flex flex-col overflow-hidden">
           <textarea
@@ -356,6 +406,8 @@ import { useSettingsStore } from '@/stores/settingsStore'
 import { useNotificationStore } from '@/stores/notificationStore'
 import { AIService } from '@/services/aiService'
 import { PromptGeneratorService } from '@/services/promptGeneratorService'
+import { AIGuideService } from '@/services/aiGuideService'
+import { cleanAIResponseForFormatting } from '@/utils/aiResponseUtils'
 import { 
   RefreshCw, 
   Copy, 
@@ -382,6 +434,7 @@ const promptStore = usePromptStore()
 const settingsStore = useSettingsStore()
 const notificationStore = useNotificationStore()
 const aiService = AIService.getInstance()
+const aiGuideService = AIGuideService.getInstance()
 
 // 新增：标签页状态
 const activeTab = ref<'report' | 'thinking' | 'initial' | 'advice' | 'zh' | 'en'>('report')
@@ -544,23 +597,6 @@ const removeAdviceItem = (index: number) => {
   if (promptStore.promptData.advice && promptStore.promptData.advice.length > 1) {
     promptStore.promptData.advice.splice(index, 1)
   }
-}
-
-// 清理AI响应中的markdown代码块标记和多余描述
-const cleanAIResponse = (response: string): string => {
-  return response
-    .replace(/^```[\w]*\n?/gm, '')  // 移除开头的 ```xml 或 ```
-    .replace(/\n?```$/gm, '')       // 移除结尾的 ```
-    // 移除常见的AI介绍性文字
-    .replace(/^Here is the.*?translation.*?:\s*/i, '')
-    .replace(/^Here is the.*?converted.*?:\s*/i, '')
-    .replace(/^Here is.*?:\s*/i, '')
-    .replace(/^以下是.*?翻译.*?：\s*/i, '')
-    .replace(/^以下是.*?转换.*?：\s*/i, '')
-    .replace(/^以下是.*?：\s*/i, '')
-    .replace(/^.*?翻译结果.*?：\s*/i, '')
-    .replace(/^.*?转换结果.*?：\s*/i, '')
-    .trim()
 }
 
 // 转换状态管理
@@ -1095,7 +1131,7 @@ ${currentGeneratedPrompt.value}`
         content: conversionPrompt
       }], provider, model.id)
 
-      const cleanedResponse = cleanAIResponse(response)
+      const cleanedResponse = cleanAIResponseForFormatting(response)
       promptStore.promptData.generatedPrompt = cleanedResponse
       
       // 缓存转换结果
@@ -1158,7 +1194,7 @@ ${currentGeneratedPrompt.value}`
         content: translationPrompt
       }], provider, model.id)
 
-      const cleanedResponse = cleanAIResponse(response)
+      const cleanedResponse = cleanAIResponseForFormatting(response)
       promptStore.promptData.generatedPrompt = cleanedResponse
       
       // 缓存翻译结果
@@ -1193,6 +1229,338 @@ const copyToClipboard = async (text: string, key: string = 'default') => {
     
   } catch (error) {
     notificationStore.error('复制失败，请重试')
+  }
+}
+
+// 重新生成需求描述
+const regenerateRequirementReport = async () => {
+  if (!hasConversationData.value) {
+    notificationStore.warning('需要先与AI助手对话才能重新生成需求描述')
+    return
+  }
+  
+  try {
+    isExecuting.value = true
+    promptStore.currentExecutionStep = 'report'
+    
+    const provider = settingsStore.getCurrentProvider()
+    const model = settingsStore.getCurrentModel()
+    
+    if (!provider || !model) {
+      notificationStore.error('请先配置AI模型')
+      return
+    }
+    
+    // 获取对话历史
+    const validMessages = promptStore.getValidMessages()
+    const conversationHistory = validMessages.map(msg => ({
+      type: msg.type,
+      content: msg.content
+    }))
+    
+    // 设置流式更新
+    let streamContent = ''
+    const onStreamUpdate = (chunk: string) => {
+      streamContent += chunk
+      promptStore.promptData.requirementReport = streamContent
+    }
+    
+    // 重新生成需求报告
+    const requirementReport = await aiGuideService.generateRequirementReportFromConversation(
+      conversationHistory,
+      provider,
+      model.id,
+      onStreamUpdate
+    )
+    
+    // 确保最终数据正确
+    promptStore.promptData.requirementReport = requirementReport
+    notificationStore.success('需求描述已重新生成')
+    
+  } catch (error) {
+    notificationStore.error('重新生成需求描述失败，请重试')
+  } finally {
+    isExecuting.value = false
+    promptStore.currentExecutionStep = null
+  }
+}
+
+// 重新生成关键指令
+const regenerateThinkingPoints = async () => {
+  if (!promptStore.promptData.requirementReport.trim()) {
+    notificationStore.warning('请先输入需求描述')
+    return
+  }
+  
+  try {
+    isExecuting.value = true
+    promptStore.currentExecutionStep = 'thinking'
+    
+    const provider = settingsStore.getCurrentProvider()
+    const model = settingsStore.getCurrentModel()
+    
+    if (!provider || !model) {
+      notificationStore.error('请先配置AI模型')
+      return
+    }
+    
+    const promptGeneratorService = PromptGeneratorService.getInstance()
+    
+    // 初始化流式更新状态
+    let streamContent = ''
+    let hasInitialized = false
+    
+    // 设置流式回调函数
+    const onStreamUpdate = (chunk: string) => {
+      streamContent += chunk
+      
+      // 首次收到有效数据时，立即切换到该标签页并初始化
+      if (!hasInitialized && chunk.trim()) {
+        hasInitialized = true
+        promptStore.promptData.thinkingPoints = ['正在生成...']
+        switchToTabWithScroll('thinking')
+      }
+      
+      // 实时解析并更新关键指令
+      const points = streamContent
+        .split('\n')
+        .map(s => s.replace(/^[*-]\s*/, '').trim())
+        .filter(Boolean)
+      
+      if (points.length > 0) {
+        promptStore.promptData.thinkingPoints = points
+      }
+    }
+    
+    const thinkingPoints = await promptGeneratorService.getSystemPromptThinkingPoints(
+      promptStore.promptData.requirementReport,
+      model.id,
+      'zh',
+      [],
+      provider,
+      onStreamUpdate
+    )
+    
+    // 最终确保数据正确性
+    promptStore.promptData.thinkingPoints = thinkingPoints
+    notificationStore.success('关键指令已重新生成')
+    
+  } catch (error) {
+    notificationStore.error('重新生成关键指令失败，请重试')
+  } finally {
+    isExecuting.value = false
+    promptStore.currentExecutionStep = null
+  }
+}
+
+// 重新生成初始提示词
+const regenerateInitialPrompt = async () => {
+  if (!promptStore.promptData.thinkingPoints || promptStore.promptData.thinkingPoints.length === 0) {
+    notificationStore.warning('请先生成关键指令')
+    return
+  }
+  
+  try {
+    isExecuting.value = true
+    promptStore.currentExecutionStep = 'initial'
+    
+    const provider = settingsStore.getCurrentProvider()
+    const model = settingsStore.getCurrentModel()
+    
+    if (!provider || !model) {
+      notificationStore.error('请先配置AI模型')
+      return
+    }
+    
+    const promptGeneratorService = PromptGeneratorService.getInstance()
+    
+    // 初始化流式更新状态
+    let hasInitialized = false
+    
+    // 设置流式回调函数
+    const onStreamUpdate = (chunk: string) => {
+      // 首次收到有效数据时，立即切换到该标签页并初始化
+      if (!hasInitialized && chunk.trim()) {
+        hasInitialized = true
+        promptStore.promptData.initialPrompt = '正在生成...'
+        switchToTabWithScroll('initial')
+      }
+      
+      // 如果已经初始化，追加内容；否则设置内容
+      if (hasInitialized) {
+        if (promptStore.promptData.initialPrompt === '正在生成...') {
+          promptStore.promptData.initialPrompt = chunk
+        } else {
+          promptStore.promptData.initialPrompt += chunk
+        }
+      }
+    }
+    
+    const initialPrompt = await promptGeneratorService.generateSystemPrompt(
+      promptStore.promptData.requirementReport,
+      model.id,
+      'zh',
+      [],
+      promptStore.promptData.thinkingPoints,
+      provider,
+      onStreamUpdate
+    )
+    
+    // 最终确保数据正确性
+    promptStore.promptData.initialPrompt = initialPrompt
+    notificationStore.success('初始提示词已重新生成')
+    
+  } catch (error) {
+    notificationStore.error('重新生成初始提示词失败，请重试')
+  } finally {
+    isExecuting.value = false
+    promptStore.currentExecutionStep = null
+  }
+}
+
+// 重新生成优化建议
+const regenerateAdvice = async () => {
+  if (!promptStore.promptData.initialPrompt) {
+    notificationStore.error('请先生成初始提示词')
+    return
+  }
+  
+  try {
+    isExecuting.value = true
+    promptStore.currentExecutionStep = 'advice'
+    
+    const provider = settingsStore.getCurrentProvider()
+    const model = settingsStore.getCurrentModel()
+    
+    if (!provider || !model) {
+      notificationStore.error('请先配置AI模型')
+      return
+    }
+    
+    const promptGeneratorService = PromptGeneratorService.getInstance()
+    
+    // 初始化流式更新状态
+    let streamContent = ''
+    let hasInitialized = false
+    
+    // 设置流式回调函数
+    const onStreamUpdate = (chunk: string) => {
+      streamContent += chunk
+      
+      // 首次收到有效数据时，立即切换到该标签页并初始化
+      if (!hasInitialized && chunk.trim()) {
+        hasInitialized = true
+        promptStore.promptData.advice = ['正在生成...']
+        switchToTabWithScroll('advice')
+      }
+      
+      // 实时解析并更新优化建议
+      const adviceList = streamContent
+        .split('\n')
+        .map(s => s.replace(/^[*-]\s*/, '').trim())
+        .filter(Boolean)
+      
+      if (adviceList.length > 0) {
+        promptStore.promptData.advice = adviceList
+      }
+    }
+    
+    const advice = await promptGeneratorService.getOptimizationAdvice(
+      promptStore.promptData.initialPrompt,
+      'system',
+      model.id,
+      'zh',
+      [],
+      provider,
+      onStreamUpdate
+    )
+    
+    // 最终确保数据正确性
+    promptStore.promptData.advice = advice
+    notificationStore.success('优化建议已重新生成')
+    
+  } catch (error) {
+    notificationStore.error('重新生成优化建议失败，请重试')
+  } finally {
+    isExecuting.value = false
+    promptStore.currentExecutionStep = null
+  }
+}
+
+// 重新生成最终提示词
+const regenerateFinalPrompt = async () => {
+  if (!promptStore.promptData.initialPrompt || !promptStore.promptData.advice) {
+    notificationStore.error('请先完成前面的步骤')
+    return
+  }
+  
+  try {
+    isExecuting.value = true
+    promptStore.currentExecutionStep = 'final'
+    
+    const provider = settingsStore.getCurrentProvider()
+    const model = settingsStore.getCurrentModel()
+    
+    if (!provider || !model) {
+      notificationStore.error('请先配置AI模型')
+      return
+    }
+    
+    const promptGeneratorService = PromptGeneratorService.getInstance()
+    
+    // 初始化流式更新状态
+    let hasInitialized = false
+    
+    // 设置流式回调函数
+    const onStreamUpdate = (chunk: string) => {
+      // 首次收到有效数据时，立即切换到该标签页并初始化
+      if (!hasInitialized && chunk.trim()) {
+        hasInitialized = true
+        promptStore.promptData.generatedPrompt = '正在生成...'
+        switchToTabWithScroll('zh')
+      }
+      
+      // 如果已经初始化，追加内容；否则设置内容
+      if (hasInitialized) {
+        if (promptStore.promptData.generatedPrompt === '正在生成...') {
+          promptStore.promptData.generatedPrompt = chunk
+        } else {
+          promptStore.promptData.generatedPrompt += chunk
+        }
+      }
+    }
+    
+    const finalPrompt = await promptGeneratorService.applyOptimizationAdvice(
+      promptStore.promptData.initialPrompt,
+      promptStore.promptData.advice,
+      'system',
+      model.id,
+      'zh',
+      [],
+      provider,
+      onStreamUpdate
+    )
+    
+    // 最终确保数据正确性
+    promptStore.promptData.generatedPrompt = finalPrompt
+    
+    // 重置格式和语言状态，清空缓存
+    formatState.value = 'markdown'
+    languageState.value = 'zh'
+    backupContent.value = {
+      markdown_zh: finalPrompt,
+      markdown_en: '',
+      xml_zh: '',
+      xml_en: ''
+    }
+    
+    notificationStore.success('最终提示词已重新生成')
+    
+  } catch (error) {
+    notificationStore.error('重新生成最终提示词失败，请重试')
+  } finally {
+    isExecuting.value = false
+    promptStore.currentExecutionStep = null
   }
 }
 

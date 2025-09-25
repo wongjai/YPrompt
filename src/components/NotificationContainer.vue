@@ -4,7 +4,7 @@
       v-for="notification in notificationStore.notifications"
       :key="notification.id"
       :class="[
-        'max-w-sm w-full shadow-lg rounded-lg pointer-events-auto overflow-hidden',
+        'max-w-md w-full shadow-lg rounded-lg pointer-events-auto overflow-hidden',
         getNotificationClasses(notification.type)
       ]"
       class="transform transition-all duration-300 ease-in-out"
@@ -14,15 +14,15 @@
           <div class="flex-shrink-0">
             <component :is="getIcon(notification.type)" class="h-5 w-5" />
           </div>
-          <div class="ml-3 w-0 flex-1">
-            <p class="text-sm font-medium">
+          <div class="ml-3 flex-1 min-w-0">
+            <p class="text-sm font-medium break-words">
               {{ notification.message }}
             </p>
           </div>
-          <div class="ml-4 flex-shrink-0 flex">
+          <div class="ml-4 flex-shrink-0">
             <button
               @click="notificationStore.removeNotification(notification.id)"
-              class="inline-flex text-gray-400 hover:text-gray-600 focus:outline-none"
+              class="inline-flex text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
             >
               <X class="h-4 w-4" />
             </button>

@@ -8,6 +8,39 @@ export interface ModelConfig {
   provider: string
   enabled: boolean
   apiType?: 'openai' | 'anthropic' | 'google' // 模型使用的API类型
+  
+  // 新增：能力检测相关字段
+  capabilities?: ModelCapabilities
+  lastTested?: Date
+  testStatus?: 'untested' | 'testing' | 'success' | 'failed'
+}
+
+export interface ModelCapabilities {
+  reasoning: boolean                    // 是否支持思考
+  reasoningType: ReasoningType | null   // 思考类型
+  supportedParams: SupportedParams     // 支持的API参数
+  testResult?: TestResult              // 详细测试结果
+}
+
+export type ReasoningType = 
+  | 'openai-reasoning'    // OpenAI o1系列
+  | 'gemini-thought'      // Gemini thought字段
+  | 'claude-thinking'     // Claude thinking标签
+  | 'generic-cot'         // 通用链式思考
+
+export interface SupportedParams {
+  temperature: boolean                  // 是否支持temperature参数
+  maxTokens: 'max_tokens' | 'max_completion_tokens'  // 使用的token参数名
+  streaming: boolean                   // 是否支持流式输出
+  systemMessage: boolean               // 是否支持系统消息
+}
+
+export interface TestResult {
+  connected: boolean                   // 基础连接是否成功
+  reasoning: boolean                   // 思考能力是否可用
+  responseTime: number                // 响应时间(ms)
+  error?: string                      // 错误信息
+  timestamp: Date                     // 测试时间戳
 }
 
 export interface ProviderConfig {
@@ -301,6 +334,131 @@ export const useSettingsStore = defineStore('settings', () => {
     return promptConfigManager.getUserGuidedPromptRules()
   }
 
+  // 更新模型测试状态
+  const updateModelTestStatus = (providerId: string, modelId: string, status: 'untested' | 'testing' | 'success' | 'failed') => {
+    const provider = providers.value.find(p => p.id === providerId)
+    if (provider) {
+      const model = provider.models.find(m => m.id === modelId)
+      if (model) {
+        model.testStatus = status
+        if (status === 'testing') {
+          model.lastTested = new Date()
+        }
+      }
+    }
+  }
+
+  // 更新模型能力信息
+  const updateModelCapabilities = (providerId: string, modelId: string, capabilities: ModelCapabilities) => {
+    const provider = providers.value.find(p => p.id === providerId)
+    if (provider) {
+      const model = provider.models.find(m => m.id === modelId)
+      if (model) {
+        model.capabilities = capabilities
+        model.lastTested = new Date()
+        model.testStatus = capabilities.testResult?.connected ? 'success' : 'failed'
+      }
+    }
+  }
+
+  // 新增：快速更新连接状态（不等思考结果）
+  const updateModelConnectionStatus = (providerId: string, modelId: string, connected: boolean, error?: string) => {
+    const provider = providers.value.find(p => p.id === providerId)
+    if (provider) {
+      const model = provider.models.find(m => m.id === modelId)
+      if (model) {
+        // 如果还没有capabilities，创建一个临时的
+        if (!model.capabilities) {
+          model.capabilities = {
+            reasoning: false,
+            reasoningType: null,
+            supportedParams: {
+              temperature: true,
+              maxTokens: 'max_tokens',
+              streaming: true,
+              systemMessage: true
+            },
+            testResult: {
+              connected,
+              reasoning: false,
+              responseTime: 0,
+              timestamp: new Date(),
+              error
+            }
+          }
+        } else {
+          // 更新现有的连接状态
+          if (model.capabilities.testResult) {
+            model.capabilities.testResult.connected = connected
+            model.capabilities.testResult.timestamp = new Date()
+            if (error) {
+              model.capabilities.testResult.error = error
+            }
+          }
+        }
+        
+        model.lastTested = new Date()
+        model.testStatus = connected ? 'success' : 'failed'
+      }
+    }
+  }
+
+  // 新增：清空模型测试状态
+  const clearModelTestStatus = (providerId: string, modelId: string) => {
+    const provider = providers.value.find(p => p.id === providerId)
+    if (provider) {
+      const model = provider.models.find(m => m.id === modelId)
+      if (model) {
+        model.testStatus = 'untested'
+        model.capabilities = undefined
+        model.lastTested = undefined
+      }
+    }
+  }
+
+  // 获取模型测试状态
+  const getModelTestStatus = (providerId: string, modelId: string) => {
+    const provider = providers.value.find(p => p.id === providerId)
+    if (provider) {
+      const model = provider.models.find(m => m.id === modelId)
+      return model?.testStatus || 'untested'
+    }
+    return 'untested'
+  }
+
+  // 检查模型是否需要重新测试
+  const shouldRetestModel = (providerId: string, modelId: string): boolean => {
+    const provider = providers.value.find(p => p.id === providerId)
+    if (provider) {
+      const model = provider.models.find(m => m.id === modelId)
+      if (!model?.lastTested || !model.capabilities) {
+        return true
+      }
+      
+      // 24小时后需要重新测试
+      const age = Date.now() - model.lastTested.getTime()
+      return age > 24 * 60 * 60 * 1000
+    }
+    return true
+  }
+
+  // 获取思考能力类型描述
+  const getReasoningTypeDescription = (reasoningType: ReasoningType | null | undefined): string => {
+    switch (reasoningType) {
+      case 'openai-reasoning':
+        return 'OpenAI o1系列推理能力'
+      case 'gemini-thought':
+        return 'Gemini内置思考功能'
+      case 'claude-thinking':
+        return 'Claude思考标签支持'
+      case 'generic-cot':
+        return '通用链式思考'
+      default:
+        return '无思考能力'
+    }
+  }
+
+
   const getCurrentRequirementReportRules = () => {
     return promptConfigManager.getRequirementReportRules()
   }
@@ -339,6 +497,14 @@ export const useSettingsStore = defineStore('settings', () => {
     resetRequirementReportRules,
     getCurrentSystemRules,
     getCurrentUserRules,
-    getCurrentRequirementReportRules
+    getCurrentRequirementReportRules,
+    // 新增：模型测试相关方法
+    updateModelTestStatus,
+    updateModelCapabilities,
+    updateModelConnectionStatus,
+    clearModelTestStatus,
+    getModelTestStatus,
+    shouldRetestModel,
+    getReasoningTypeDescription,
   }
 })

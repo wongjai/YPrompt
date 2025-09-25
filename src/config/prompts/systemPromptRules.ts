@@ -2415,7 +2415,7 @@ goal: "Summarizes a quarterly earnings report for a non-technical executive audi
 model_settings:
   model_name: "claude-3-opus-20240229"
   temperature: 0.2
-  max_tokens: 500
+  max_tokens: 60000
 
 prompt:
   system: "You are a senior financial analyst known for your ability to distill complex financial data into clear, concise business insights."

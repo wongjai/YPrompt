@@ -1,5 +1,7 @@
 import { AIService } from './aiService'
+import type { ChatMessage } from './aiService'
 import type { ProviderConfig } from '@/stores/settingsStore'
+import type { MessageAttachment } from '@/stores/promptStore'
 import { promptConfigManager } from '@/config/prompts'
 
 export class AIGuideService {
@@ -29,7 +31,7 @@ export class AIGuideService {
 
   public async generateSimpleResponse(
     userInput: string,
-    conversationHistory: Array<{ type: string; content: string }>,
+    conversationHistory: Array<{ type: string; content: string; attachments?: MessageAttachment[] }>,
     provider: ProviderConfig,
     modelId: string,
     stream: boolean = false
@@ -50,22 +52,40 @@ export class AIGuideService {
   // 构建简化的对话消息
   private buildSimpleConversationMessages(
     userInput: string,
-    conversationHistory: Array<{ type: string; content: string }>
-  ) {
+    conversationHistory: Array<{ type: string; content: string; attachments?: MessageAttachment[] }>
+  ): ChatMessage[] {
+    console.log('[AIGuideService] Building conversation messages with history:', {
+      historyLength: conversationHistory.length,
+      hasAttachments: conversationHistory.some(msg => msg.attachments && msg.attachments.length > 0),
+      attachmentCounts: conversationHistory.map(msg => ({ type: msg.type, attachments: msg.attachments?.length || 0 }))
+    })
+    
     // 系统消息：使用内置的用户引导规则
-    const systemMessage = {
+    const systemMessage: ChatMessage = {
       role: 'system' as const,
       content: promptConfigManager.getUserGuidedPromptRules()
     }
 
     // 对话历史
-    const conversationMessages = conversationHistory.map(msg => ({
-      role: msg.type === 'user' ? 'user' as const : 'assistant' as const,
-      content: msg.content
-    }))
+    const conversationMessages: ChatMessage[] = conversationHistory.map(msg => {
+      const message: ChatMessage = {
+        role: msg.type === 'user' ? 'user' as const : 'assistant' as const,
+        content: msg.content,
+        attachments: msg.attachments || []
+      }
+      
+      console.log('[AIGuideService] Processing message:', {
+        role: message.role,
+        hasAttachments: !!(message.attachments && message.attachments.length > 0),
+        attachmentCount: message.attachments?.length || 0,
+        attachments: message.attachments?.map(att => ({ name: att.name, type: att.type, size: att.size }))
+      })
+      
+      return message
+    })
 
     // 构建消息数组
-    const messages = [systemMessage, ...conversationMessages]
+    const messages: ChatMessage[] = [systemMessage, ...conversationMessages]
     
     // 只有当userInput不为空时才添加当前用户消息（避免重复）
     if (userInput.trim()) {
@@ -74,6 +94,11 @@ export class AIGuideService {
         content: userInput
       })
     }
+
+    console.log('[AIGuideService] Final messages array:', {
+      totalMessages: messages.length,
+      messagesWithAttachments: messages.filter(msg => msg.attachments && msg.attachments.length > 0).length
+    })
 
     return messages
   }
@@ -161,7 +186,7 @@ export class AIGuideService {
 
   // 基于对话历史生成需求报告
   public async generateRequirementReportFromConversation(
-    conversationHistory: Array<{ type: string; content: string }>,
+    conversationHistory: Array<{ type: string; content: string; attachments?: MessageAttachment[] }>,
     provider?: ProviderConfig,
     modelId?: string,
     onStreamUpdate?: (content: string) => void
@@ -175,7 +200,7 @@ export class AIGuideService {
 
   // 使用AI基于对话历史生成需求报告
   private async generateReportFromConversationWithAI(
-    conversationHistory: Array<{ type: string; content: string }>,
+    conversationHistory: Array<{ type: string; content: string; attachments?: MessageAttachment[] }>,
     provider: ProviderConfig,
     modelId: string,
     onStreamUpdate?: (content: string) => void
@@ -186,7 +211,19 @@ export class AIGuideService {
     }
 
     const conversationSummary = conversationHistory
-      .map(msg => `${msg.type === 'user' ? 'User' : 'AI'}: ${msg.content}`)
+      .map(msg => {
+        let content = `${msg.type === 'user' ? 'User' : 'AI'}: ${msg.content}`
+        
+        // 如果有附件，添加附件信息
+        if (msg.attachments && msg.attachments.length > 0) {
+          const attachmentInfo = msg.attachments.map(att => 
+            `[附件: ${att.name} (${att.type}, ${att.size} bytes)]`
+          ).join(', ')
+          content += `\n附件: ${attachmentInfo}`
+        }
+        
+        return content
+      })
       .join('\n\n')
 
     const userMessage = {
