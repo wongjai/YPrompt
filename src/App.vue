@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-// App组件
+// App組件
 </script>
 
 <style scoped>

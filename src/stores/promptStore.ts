@@ -7,19 +7,19 @@ export interface MessageAttachment {
   type: 'image' | 'document' | 'audio' | 'video'
   mimeType: string
   size: number
-  data: string // Base64编码的文件数据
-  url?: string // 用于预览的临时URL（如果需要）
+  data: string // Base64編碼的文件數據
+  url?: string // 用於預覽的臨時URL（如果需要）
 }
 
 export interface ChatMessage {
-  id?: string  // 消息ID，用于更新消息
+  id?: string  // 消息ID，用於更新消息
   type: 'user' | 'ai'
   content: string
   timestamp: string
-  isProgress?: boolean  // 标记是否为进度消息
-  isDeleted?: boolean   // 标记是否被删除
-  isEditing?: boolean   // 标记是否正在编辑
-  originalContent?: string  // 编辑时保存原始内容
+  isProgress?: boolean  // 標記是否爲進度消息
+  isDeleted?: boolean   // 標記是否被刪除
+  isEditing?: boolean   // 標記是否正在編輯
+  originalContent?: string  // 編輯時保存原始內容
   attachments?: MessageAttachment[]  // 附件列表
 }
 
@@ -32,10 +32,10 @@ export interface CollectedData {
 }
 
 export interface PromptData {
-  requirementReport: string // 需求总结报告
-  thinkingPoints?: string[] // GPrompt关键指令
-  initialPrompt?: string    // GPrompt初始提示词
-  advice?: string[]         // GPrompt优化建议
+  requirementReport: string // 需求總結報告
+  thinkingPoints?: string[] // GPrompt關鍵指令
+  initialPrompt?: string    // GPrompt初始提示詞
+  advice?: string[]         // GPrompt優化建議
   generatedPrompt: string | {
     zh: string
     en: string
@@ -48,15 +48,15 @@ export interface PromptData {
 
 export const usePromptStore = defineStore('prompt', () => {
   const currentStep = ref(0)
-  const currentStepUserMessages = ref(0) // 当前步骤的用户消息计数
+  const currentStepUserMessages = ref(0) // 當前步驟的用戶消息計數
   const chatMessages = ref<ChatMessage[]>([])
   const isTyping = ref(false)
   const isGenerating = ref(false)
   const showPreview = ref(false)
   const currentLanguage = ref<'zh' | 'en'>('zh')
-  const isAutoMode = ref(true) // 执行模式：true=自动，false=手动
-  const isInitialized = ref(false) // 添加全局初始化标志
-  const currentExecutionStep = ref<'report' | 'thinking' | 'initial' | 'advice' | 'final' | null>(null) // 当前执行步骤状态
+  const isAutoMode = ref(true) // 執行模式：true=自動，false=手動
+  const isInitialized = ref(false) // 添加全局初始化標誌
+  const currentExecutionStep = ref<'report' | 'thinking' | 'initial' | 'advice' | 'final' | null>(null) // 當前執行步驟狀態
 
   const collectedData = ref<CollectedData>({
     taskDefinition: '',
@@ -67,7 +67,7 @@ export const usePromptStore = defineStore('prompt', () => {
   })
 
   const promptData = ref<PromptData>({
-    requirementReport: '', // 新增：需求总结报告
+    requirementReport: '', // 新增：需求總結報告
     generatedPrompt: {
       zh: '',
       en: ''
@@ -81,39 +81,39 @@ export const usePromptStore = defineStore('prompt', () => {
   const steps = [
     {
       id: 'taskDefinition',
-      title: '任务定义',
-      description: '明确AI助手的核心任务和主要功能'
+      title: '任務定義',
+      description: '明確AI助手的核心任務和主要功能'
     },
     {
       id: 'context',
-      title: '使用场景',
-      description: '了解AI的使用环境和目标用户'
+      title: '使用場景',
+      description: '瞭解AI的使用環境和目標用戶'
     },
     {
       id: 'outputFormat',
-      title: '输出格式',
-      description: '定义AI回答的结构、格式和风格'
+      title: '輸出格式',
+      description: '定義AI回答的結構、格式和風格'
     },
     {
       id: 'qualityCriteria',
-      title: '质量要求',
-      description: '确定成功标准和质量期望'
+      title: '質量要求',
+      description: '確定成功標準和質量期望'
     },
     {
       id: 'executionParams',
       title: '工作方式',
-      description: '设定AI的思考方式和互动风格'
+      description: '設定AI的思考方式和互動風格'
     },
     {
       id: 'optimization',
-      title: '最终确认',
-      description: '确认信息完整性并生成提示词'
+      title: '最終確認',
+      description: '確認信息完整性並生成提示詞'
     }
   ]
 
   const addMessage = (type: 'user' | 'ai', content: string, attachments?: MessageAttachment[], options?: { id?: string, isProgress?: boolean }) => {
     const message: ChatMessage = {
-      id: options?.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: options?.id || `msg_${Date.now()}_${Math.random().function toString() { [native code] }(36).substr(2, 9)}`,
       type,
       content,
       timestamp: new Date().toISOString(),
@@ -130,22 +130,22 @@ export const usePromptStore = defineStore('prompt', () => {
     
     chatMessages.value.push(message)
     
-    // 如果是用户消息，增加当前步骤计数
+    // 如果是用戶消息，增加當前步驟計數
     if (type === 'user') {
       currentStepUserMessages.value++
     }
   }
 
-  // 添加或更新进度消息
+  // 添加或更新進度消息
   const addOrUpdateProgressMessage = (content: string, messageId: string = 'progress_message') => {
     const existingIndex = chatMessages.value.findIndex(msg => msg.id === messageId)
     
     if (existingIndex !== -1) {
-      // 更新现有消息
+      // 更新現有消息
       chatMessages.value[existingIndex].content = content
       chatMessages.value[existingIndex].timestamp = new Date().toISOString()
     } else {
-      // 添加新的进度消息
+      // 添加新的進度消息
       addMessage('ai', content, undefined, { id: messageId, isProgress: true })
     }
   }
@@ -155,8 +155,8 @@ export const usePromptStore = defineStore('prompt', () => {
     currentStep.value = 0
     currentStepUserMessages.value = 0
     showPreview.value = false
-    isInitialized.value = false // 重置初始化标志
-    currentExecutionStep.value = null // 重置执行步骤状态
+    isInitialized.value = false // 重置初始化標誌
+    currentExecutionStep.value = null // 重置執行步驟狀態
     collectedData.value = {
       taskDefinition: '',
       context: '',
@@ -164,9 +164,9 @@ export const usePromptStore = defineStore('prompt', () => {
       qualityCriteria: '',
       executionParams: ''
     }
-    // 完全重置promptData，保持初始状态
+    // 完全重置promptData，保持初始狀態
     promptData.value = {
-      requirementReport: '', // 也清空需求描述，让用户重新输入
+      requirementReport: '', // 也清空需求描述，讓用戶重新輸入
       generatedPrompt: {
         zh: '',
         en: ''
@@ -181,7 +181,7 @@ export const usePromptStore = defineStore('prompt', () => {
   const nextStep = () => {
     if (currentStep.value < steps.length - 1) {
       currentStep.value++
-      currentStepUserMessages.value = 0 // 重置当前步骤用户消息计数
+      currentStepUserMessages.value = 0 // 重置當前步驟用戶消息計數
     }
   }
 
@@ -235,7 +235,7 @@ export const usePromptStore = defineStore('prompt', () => {
     }
   }
 
-  // 获取有效消息（未被删除的消息），用于API调用
+  // 獲取有效消息（未被刪除的消息），用於API調用
   const getValidMessages = (): ChatMessage[] => {
     return chatMessages.value.filter(msg => !msg.isDeleted && !msg.isProgress)
   }

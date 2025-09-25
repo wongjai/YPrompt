@@ -8,17 +8,17 @@ export class AIGuideService {
   private static instance: AIGuideService
   private aiService: AIService
 
-  private constructor() {
+  private function Object() { [native code] }() {
     this.aiService = AIService.getInstance()
   }
 
-  // 获取流式模式设置（与ChatInterface保持同步）
+  // 獲取流式模式設置（與ChatInterface保持同步）
   private getStreamMode(): boolean {
     try {
       const savedStreamMode = localStorage.getItem('yprompt_stream_mode')
-      return savedStreamMode ? JSON.parse(savedStreamMode) : true // 默认为true
+      return savedStreamMode ? JSON.parse(savedStreamMode) : true // 默認爲true
     } catch (error) {
-      return true // 默认为流式模式
+      return true // 默認爲流式模式
     }
   }
 
@@ -39,17 +39,17 @@ export class AIGuideService {
     
     const messages = this.buildSimpleConversationMessages(userInput, conversationHistory)
     
-    // 调用AI API
+    // 調用AI API
     const response = await this.aiService.callAI(messages, provider, modelId, stream)
     
     if (!response || response.trim() === '') {
-      throw new Error('AI API返回了空响应')
+      throw new Error('AI API返回了空響應')
     }
     
     return response
   }
 
-  // 构建简化的对话消息
+  // 構建簡化的對話消息
   private buildSimpleConversationMessages(
     userInput: string,
     conversationHistory: Array<{ type: string; content: string; attachments?: MessageAttachment[] }>
@@ -60,13 +60,13 @@ export class AIGuideService {
       attachmentCounts: conversationHistory.map(msg => ({ type: msg.type, attachments: msg.attachments?.length || 0 }))
     })
     
-    // 系统消息：使用内置的用户引导规则
+    // 系統消息：使用內置的用戶引導規則
     const systemMessage: ChatMessage = {
       role: 'system' as const,
       content: promptConfigManager.getUserGuidedPromptRules()
     }
 
-    // 对话历史
+    // 對話歷史
     const conversationMessages: ChatMessage[] = conversationHistory.map(msg => {
       const message: ChatMessage = {
         role: msg.type === 'user' ? 'user' as const : 'assistant' as const,
@@ -84,10 +84,10 @@ export class AIGuideService {
       return message
     })
 
-    // 构建消息数组
+    // 構建消息數組
     const messages: ChatMessage[] = [systemMessage, ...conversationMessages]
     
-    // 只有当userInput不为空时才添加当前用户消息（避免重复）
+    // 只有當userInput不爲空時才添加當前用戶消息（避免重複）
     if (userInput.trim()) {
       messages.push({
         role: 'user' as const,
@@ -103,51 +103,51 @@ export class AIGuideService {
     return messages
   }
 
-  // 获取步骤信息
+  // 獲取步驟信息
   private getStepInfo(stepId: string) {
     const steps = [
       { 
         id: 'taskDefinition', 
-        title: '任务定义', 
-        description: '明确AI助手的核心任务和主要功能',
-        focus: '重点了解用户希望AI完成什么样的工作'
+        title: '任務定義', 
+        description: '明確AI助手的核心任務和主要功能',
+        focus: '重點了解用戶希望AI完成什麼樣的工作'
       },
       { 
         id: 'context', 
-        title: '使用场景', 
-        description: '了解AI的使用环境和目标用户',
-        focus: '重点了解在什么情况下使用、面向什么样的用户'
+        title: '使用場景', 
+        description: '瞭解AI的使用環境和目標用戶',
+        focus: '重點了解在什麼情況下使用、面向什麼樣的用戶'
       },
       { 
         id: 'outputFormat', 
-        title: '输出格式', 
-        description: '定义AI回答的结构、格式和风格',
-        focus: '重点了解希望AI如何组织和呈现答案'
+        title: '輸出格式', 
+        description: '定義AI回答的結構、格式和風格',
+        focus: '重點了解希望AI如何組織和呈現答案'
       },
       { 
         id: 'qualityCriteria', 
-        title: '质量要求', 
-        description: '确定成功标准和质量期望',
-        focus: '重点了解对准确性、完整性等方面的要求'
+        title: '質量要求', 
+        description: '確定成功標準和質量期望',
+        focus: '重點了解對準確性、完整性等方面的要求'
       },
       { 
         id: 'executionParams', 
         title: '工作方式', 
-        description: '设定AI的思考方式和互动风格',
-        focus: '重点了解希望AI采用什么样的工作方式和语调'
+        description: '設定AI的思考方式和互動風格',
+        focus: '重點了解希望AI採用什麼樣的工作方式和語調'
       },
       { 
         id: 'optimization', 
-        title: '最终确认', 
-        description: '确认信息完整性并生成提示词',
-        focus: '汇总所有信息并生成最终提示词'
+        title: '最終確認', 
+        description: '確認信息完整性並生成提示詞',
+        focus: '彙總所有信息並生成最終提示詞'
       }
     ]
 
     return steps.find(step => step.id === stepId) || steps[0]
   }
 
-  // 获取步骤的初始问题 - 使用AI生成
+  // 獲取步驟的初始問題 - 使用AI生成
   public async getInitialQuestion(
     stepId: string, 
     provider?: ProviderConfig, 
@@ -161,7 +161,7 @@ export class AIGuideService {
     return await this.generateInitialQuestionWithAI(stepId, provider, modelId, stream)
   }
 
-  // 使用AI生成初始问题
+  // 使用AI生成初始問題
   private async generateInitialQuestionWithAI(
     stepId: string,
     provider: ProviderConfig,
@@ -177,14 +177,14 @@ export class AIGuideService {
 
     const userMessage = {
       role: 'user' as const,
-      content: `请为"${currentStep.title}"步骤生成一个合适的开场问题。这个步骤的目标是：${currentStep.description}`
+      content: `請爲"${currentStep.title}"步驟生成一個合適的開場問題。這個步驟的目標是：${currentStep.description}`
     }
 
     const response = await this.aiService.callAI([systemMessage, userMessage], provider, modelId, stream)
     return response
   }
 
-  // 基于对话历史生成需求报告
+  // 基於對話歷史生成需求報告
   public async generateRequirementReportFromConversation(
     conversationHistory: Array<{ type: string; content: string; attachments?: MessageAttachment[] }>,
     provider?: ProviderConfig,
@@ -198,7 +198,7 @@ export class AIGuideService {
     return await this.generateReportFromConversationWithAI(conversationHistory, provider, modelId, onStreamUpdate)
   }
 
-  // 使用AI基于对话历史生成需求报告
+  // 使用AI基於對話歷史生成需求報告
   private async generateReportFromConversationWithAI(
     conversationHistory: Array<{ type: string; content: string; attachments?: MessageAttachment[] }>,
     provider: ProviderConfig,
@@ -228,17 +228,17 @@ export class AIGuideService {
 
     const userMessage = {
       role: 'user' as const,
-      content: `基于以下对话历史生成需求总结报告：
+      content: `基於以下對話歷史生成需求總結報告：
 
-**对话历史：**
+**對話歷史：**
 ${conversationSummary}
 
-请生成完整的需求总结报告，确保所有5个部分都有具体内容。`
+請生成完整的需求總結報告，確保所有5個部分都有具體內容。`
     }
 
     const streamMode = this.getStreamMode()
     
-    // 如果有流式回调且启用流式模式，设置流式更新
+    // 如果有流式回調且啓用流式模式，設置流式更新
     if (onStreamUpdate && streamMode) {
       this.aiService.setStreamUpdateCallback((chunk: string) => {
         onStreamUpdate(chunk)
@@ -247,7 +247,7 @@ ${conversationSummary}
     
     const response = await this.aiService.callAI([systemMessage, userMessage], provider, modelId, streamMode)
     
-    // 清理流式回调
+    // 清理流式回調
     if (onStreamUpdate && streamMode) {
       this.aiService.clearStreamUpdateCallback()
     }

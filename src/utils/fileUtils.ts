@@ -1,8 +1,8 @@
 import type { MessageAttachment } from '@/stores/promptStore'
 
-// 支持的文件类型配置
+// 支持的文件類型配置
 export const FILE_CONFIG = {
-  // 图片类型
+  // 圖片類型
   image: {
     types: [
       'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 
@@ -16,7 +16,7 @@ export const FILE_CONFIG = {
     maxSize: 20 * 1024 * 1024, // 20MB
     icon: '🖼️'
   },
-  // 文档类型
+  // 文檔類型
   document: {
     types: [
       'application/pdf', 'text/plain', 'text/markdown', 'text/csv',
@@ -38,7 +38,7 @@ export const FILE_CONFIG = {
     maxSize: 25 * 1024 * 1024, // 25MB
     icon: '📄'
   },
-  // 音频类型
+  // 音頻類型
   audio: {
     types: [
       'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac', 
@@ -50,7 +50,7 @@ export const FILE_CONFIG = {
     maxSize: 50 * 1024 * 1024, // 50MB
     icon: '🎵'
   },
-  // 视频类型
+  // 視頻類型
   video: {
     types: [
       'video/mp4', 'video/webm', 'video/ogg', 'video/x-msvideo', 'video/quicktime', 
@@ -64,17 +64,17 @@ export const FILE_CONFIG = {
   }
 }
 
-// 获取所有支持的MIME类型
+// 獲取所有支持的MIME類型
 export const getAllSupportedTypes = (): string[] => {
   return Object.values(FILE_CONFIG).flatMap(config => config.types)
 }
 
-// 获取所有支持的文件扩展名
+// 獲取所有支持的文件擴展名
 export const getAllSupportedExtensions = (): string[] => {
   return Object.values(FILE_CONFIG).flatMap(config => config.extensions)
 }
 
-// 根据文件扩展名获取文件类型分类
+// 根據文件擴展名獲取文件類型分類
 export const getFileTypeCategoryByExtension = (fileName: string): 'image' | 'document' | 'audio' | 'video' | null => {
   const extension = '.' + fileName.split('.').pop()?.toLowerCase()
   
@@ -86,13 +86,13 @@ export const getFileTypeCategoryByExtension = (fileName: string): 'image' | 'doc
   return null
 }
 
-// 根据文件扩展名获取MIME类型
+// 根據文件擴展名獲取MIME類型
 export const getMimeTypeByExtension = (fileName: string): string => {
   const extension = '.' + fileName.split('.').pop()?.toLowerCase()
   
-  // 完整的文件扩展名到MIME类型映射
+  // 完整的文件擴展名到MIME類型映射
   const extensionToMimeType: Record<string, string> = {
-    // 图片类型
+    // 圖片類型
     '.jpg': 'image/jpeg',
     '.jpeg': 'image/jpeg',
     '.png': 'image/png',
@@ -106,7 +106,7 @@ export const getMimeTypeByExtension = (fileName: string): string => {
     '.heif': 'image/heif',
     '.ico': 'image/x-icon',
     
-    // 文档类型
+    // 文檔類型
     '.pdf': 'application/pdf',
     '.txt': 'text/plain',
     '.md': 'text/markdown',
@@ -138,7 +138,7 @@ export const getMimeTypeByExtension = (fileName: string): string => {
     '.cfg': 'text/plain',
     '.conf': 'text/plain',
     
-    // 音频类型
+    // 音頻類型
     '.mp3': 'audio/mpeg',
     '.wav': 'audio/wav',
     '.ogg': 'audio/ogg',
@@ -147,7 +147,7 @@ export const getMimeTypeByExtension = (fileName: string): string => {
     '.m4a': 'audio/m4a',
     '.wma': 'audio/x-ms-wma',
     
-    // 视频类型
+    // 視頻類型
     '.mp4': 'video/mp4',
     '.webm': 'video/webm',
     '.ogv': 'video/ogg',
@@ -162,19 +162,19 @@ export const getMimeTypeByExtension = (fileName: string): string => {
   return extensionToMimeType[extension] || 'application/octet-stream'
 }
 export const getFileTypeCategory = (mimeType: string, fileName?: string): 'image' | 'document' | 'audio' | 'video' | null => {
-  // 首先尝试通过MIME类型判断
+  // 首先嚐試通過MIME類型判斷
   for (const [category, config] of Object.entries(FILE_CONFIG)) {
     if (config.types.includes(mimeType)) {
       return category as 'image' | 'document' | 'audio' | 'video'
     }
   }
   
-  // 如果MIME类型判断失败，尝试通过文件扩展名判断
+  // 如果MIME類型判斷失敗，嘗試通過文件擴展名判斷
   if (fileName) {
     return getFileTypeCategoryByExtension(fileName)
   }
   
-  // 对于一些常见的通用MIME类型，尝试通过扩展名判断
+  // 對於一些常見的通用MIME類型，嘗試通過擴展名判斷
   if (mimeType === 'application/octet-stream' || mimeType === '' || !mimeType) {
     if (fileName) {
       return getFileTypeCategoryByExtension(fileName)
@@ -184,7 +184,7 @@ export const getFileTypeCategory = (mimeType: string, fileName?: string): 'image
   return null
 }
 
-// 根据文件类型获取图标
+// 根據文件類型獲取圖標
 export const getFileIcon = (type: 'image' | 'document' | 'audio' | 'video'): string => {
   const config = FILE_CONFIG[type as keyof typeof FILE_CONFIG]
   return config?.icon || '📎'
@@ -201,7 +201,7 @@ export const formatFileSize = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
 }
 
-// 验证文件类型
+// 驗證文件類型
 export const validateFileType = (file: File): { valid: boolean; error?: string } => {
   const category = getFileTypeCategory(file.type, file.name)
   
@@ -209,42 +209,42 @@ export const validateFileType = (file: File): { valid: boolean; error?: string }
     const supportedExtensions = getAllSupportedExtensions().join(', ')
     return {
       valid: false,
-      error: `不支持的文件类型。支持的格式：${supportedExtensions}`
+      error: `不支持的文件類型。支持的格式：${supportedExtensions}`
     }
   }
   
   return { valid: true }
 }
 
-// 验证文件大小
+// 驗證文件大小
 export const validateFileSize = (file: File): { valid: boolean; error?: string } => {
   const category = getFileTypeCategory(file.type, file.name)
   if (!category) {
-    return { valid: false, error: '未知的文件类型' }
+    return { valid: false, error: '未知的文件類型' }
   }
   
   const config = FILE_CONFIG[category as keyof typeof FILE_CONFIG]
   if (!config) {
-    return { valid: false, error: '未知的文件类型配置' }
+    return { valid: false, error: '未知的文件類型配置' }
   }
   
   if (file.size > config.maxSize) {
     return {
       valid: false,
-      error: `文件过大。最大支持 ${formatFileSize(config.maxSize)}`
+      error: `文件過大。最大支持 ${formatFileSize(config.maxSize)}`
     }
   }
   
   return { valid: true }
 }
 
-// 将文件转换为Base64
+// 將文件轉換爲Base64
 export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => {
       const result = reader.result as string
-      // 移除data:image/jpeg;base64,前缀，只保留Base64数据
+      // 移除data:image/jpeg;base64,前綴，只保留Base64數據
       const base64Data = result.split(',')[1]
       
       console.log('[FileUtils] Base64 conversion:', {
@@ -257,12 +257,12 @@ export const fileToBase64 = (file: File): Promise<string> => {
       
       resolve(base64Data)
     }
-    reader.onerror = () => reject(new Error('文件读取失败'))
+    reader.onerror = () => reject(new Error('文件讀取失敗'))
     reader.readAsDataURL(file)
   })
 }
 
-// 创建MessageAttachment对象
+// 創建MessageAttachment對象
 export const createMessageAttachment = async (file: File): Promise<MessageAttachment> => {
   console.log('[FileUtils] Processing file:', {
     name: file.name,
@@ -270,7 +270,7 @@ export const createMessageAttachment = async (file: File): Promise<MessageAttach
     size: file.size
   })
   
-  // 优先通过文件扩展名确定MIME类型，这样更准确
+  // 優先通過文件擴展名確定MIME類型，這樣更準確
   const inferredMimeType = getMimeTypeByExtension(file.name)
   const finalMimeType = inferredMimeType !== 'application/octet-stream' ? inferredMimeType : file.type
   
@@ -280,7 +280,7 @@ export const createMessageAttachment = async (file: File): Promise<MessageAttach
     finalMimeType: finalMimeType
   })
   
-  // 验证文件（使用推断的MIME类型）
+  // 驗證文件（使用推斷的MIME類型）
   const mockFileForValidation = {
     ...file,
     type: finalMimeType
@@ -296,10 +296,10 @@ export const createMessageAttachment = async (file: File): Promise<MessageAttach
     throw new Error(sizeValidation.error)
   }
   
-  // 转换为Base64
+  // 轉換爲Base64
   const data = await fileToBase64(file)
   
-  // 获取文件类型分类（使用最终确定的MIME类型）
+  // 獲取文件類型分類（使用最終確定的MIME類型）
   const type = getFileTypeCategory(finalMimeType, file.name)!
   
   console.log('[FileUtils] Final attachment:', {
@@ -311,17 +311,17 @@ export const createMessageAttachment = async (file: File): Promise<MessageAttach
   })
   
   return {
-    id: `attachment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: `attachment_${Date.now()}_${Math.random().function toString() { [native code] }(36).substr(2, 9)}`,
     name: file.name,
     type,
-    mimeType: finalMimeType, // 使用推断的MIME类型
+    mimeType: finalMimeType, // 使用推斷的MIME類型
     size: file.size,
     data,
-    url: URL.createObjectURL(file) // 用于预览（如果需要）
+    url: URL.createObjectURL(file) // 用於預覽（如果需要）
   }
 }
 
-// 批量处理文件
+// 批量處理文件
 export const processFiles = async (files: File[]): Promise<{
   attachments: MessageAttachment[]
   errors: string[]
@@ -334,14 +334,14 @@ export const processFiles = async (files: File[]): Promise<{
       const attachment = await createMessageAttachment(file)
       attachments.push(attachment)
     } catch (error) {
-      errors.push(`${file.name}: ${error instanceof Error ? error.message : '处理失败'}`)
+      errors.push(`${file.name}: ${error instanceof Error ? error.message : '處理失敗'}`)
     }
   }
   
   return { attachments, errors }
 }
 
-// 清理临时URL
+// 清理臨時URL
 export const cleanupAttachmentUrls = (attachments: MessageAttachment[]) => {
   attachments.forEach(attachment => {
     if (attachment.url) {
@@ -350,7 +350,7 @@ export const cleanupAttachmentUrls = (attachments: MessageAttachment[]) => {
   })
 }
 
-// 检查模型是否支持多模态
+// 檢查模型是否支持多模態
 export const isMultimodalSupported = (modelId: string): boolean => {
   const modelName = modelId.toLowerCase()
   

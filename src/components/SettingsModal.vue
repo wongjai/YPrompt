@@ -1,24 +1,24 @@
 <template>
-  <!-- 设置按钮 -->
+  <!-- 設置按鈕 -->
   <button
     @click="settingsStore.showSettings = true"
     class="fixed top-4 right-4 z-50 p-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
-    title="设置"
+    title="設置"
   >
     <Settings class="w-5 h-5 text-gray-600" />
   </button>
 
-  <!-- 设置弹窗 -->
+  <!-- 設置彈窗 -->
   <div
     v-if="settingsStore.showSettings"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
     @click.self="settingsStore.showSettings = false"
   >
     <div class="bg-white rounded-lg max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
-      <!-- 头部 -->
+      <!-- 頭部 -->
       <div class="flex items-center justify-between p-6 border-b flex-shrink-0">
         <div class="flex items-center space-x-4">
-          <h2 class="text-xl font-semibold">设置</h2>
+          <h2 class="text-xl font-semibold">設置</h2>
           <div class="flex space-x-1">
             <button
               @click="activeTab = 'providers'"
@@ -40,7 +40,7 @@
                   : 'text-gray-600 hover:text-gray-800'
               ]"
             >
-              提示词规则
+              提示詞規則
             </button>
             <a
               href="https://github.com/fish2018"
@@ -63,15 +63,15 @@
         </button>
       </div>
 
-      <!-- 内容 -->
+      <!-- 內容 -->
       <div class="p-6 overflow-y-auto flex-1">
         
-        <!-- AI模型配置标签页 -->
+        <!-- AI模型配置標籤頁 -->
         <div v-if="activeTab === 'providers'">
           <!-- 添加新提供商 -->
           <div class="mb-6">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-medium">AI服务提供商</h3>
+              <h3 class="text-lg font-medium">AI服務提供商</h3>
               <button
                 @click="showAddProviderTypeDialog = true"
                 class="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
@@ -81,23 +81,23 @@
               </button>
             </div>
           
-            <!-- API配置说明 -->
+            <!-- API配置說明 -->
             <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 class="text-sm font-medium text-blue-800 mb-2">API配置说明</h4>
+              <h4 class="text-sm font-medium text-blue-800 mb-2">API配置說明</h4>
               <div class="text-sm text-blue-700 space-y-2">
-                <div><strong>OpenAI及兼容服务：</strong>API URL填写完整路径，如 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://api.openai.com/v1/chat/completions</code></div>
-                <div><strong>Anthropic Claude：</strong>API URL填写 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://api.anthropic.com/v1/messages</code></div>
-                <div><strong>Google Gemini：</strong>API URL填写 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://generativelanguage.googleapis.com/v1beta</code>（系统会自动根据模型拼接路径）</div>
-                <div><strong>自定义提供商：</strong>大多数第三方服务使用OpenAI兼容格式，URL结构为 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://你的域名/v1/chat/completions</code></div>
-                <div class="text-xs text-blue-600 mt-2">支持代理地址、中转API等各种自定义URL</div>
+                <div><strong>OpenAI及兼容服務：</strong>API URL填寫完整路徑，如 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://api.openai.com/v1/chat/completions</code></div>
+                <div><strong>Anthropic Claude：</strong>API URL填寫 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://api.anthropic.com/v1/messages</code></div>
+                <div><strong>Google Gemini：</strong>API URL填寫 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://generativelanguage.googleapis.com/v1beta</code>（系統會自動根據模型拼接路徑）</div>
+                <div><strong>自定義提供商：</strong>大多數第三方服務使用OpenAI兼容格式，URL結構爲 <code class="bg-blue-100 px-1 rounded break-all text-xs">https://你的域名/v1/chat/completions</code></div>
+                <div class="text-xs text-blue-600 mt-2">支持代理地址、中轉API等各種自定義URL</div>
               </div>
             </div>
 
-            <!-- 空状态 -->
+            <!-- 空狀態 -->
             <div v-if="settingsStore.providers.length === 0" class="text-center py-8 text-gray-500">
               <Settings class="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p>还没有配置任何AI提供商</p>
-              <p class="text-sm">点击上方按钮添加您的第一个AI服务</p>
+              <p>還沒有配置任何AI提供商</p>
+              <p class="text-sm">點擊上方按鈕添加您的第一個AI服務</p>
             </div>
 
             <!-- 提供商列表 -->
@@ -125,7 +125,7 @@
                     <button
                       @click="editProvider(provider)"
                       class="text-blue-500 hover:text-blue-700"
-                      title="编辑提供商"
+                      title="編輯提供商"
                     >
                       <Settings class="w-4 h-4" />
                     </button>
@@ -133,14 +133,14 @@
                       @click="testConnection(provider)"
                       :disabled="testingProvider === provider.id || !provider.apiKey"
                       class="text-green-500 hover:text-green-700 disabled:opacity-50 transition-colors"
-                      :title="testingProvider === provider.id ? '测试中...' : '测试连接'"
+                      :title="testingProvider === provider.id ? '測試中...' : '測試連接'"
                     >
                       <Zap class="w-4 h-4" :class="{ 'animate-pulse': testingProvider === provider.id }" />
                     </button>
                     <button
                       @click="deleteProvider(provider.id)"
                       class="text-red-500 hover:text-red-700"
-                      title="删除提供商"
+                      title="刪除提供商"
                     >
                       <Trash2 class="w-4 h-4" />
                     </button>
@@ -150,11 +150,11 @@
                 <!-- API配置 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">API密钥</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">API密鑰</label>
                     <input
                       v-model="provider.apiKey"
                       type="password"
-                      placeholder="输入API密钥"
+                      placeholder="輸入API密鑰"
                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       @input="settingsStore.saveSettings"
                     />
@@ -162,7 +162,7 @@
                   <div v-if="provider.allowCustomUrl || provider.type === 'custom'">
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                       API URL
-                      <span v-if="provider.type !== 'custom'" class="text-xs text-gray-500">(可选，留空使用官方完整地址)</span>
+                      <span v-if="provider.type !== 'custom'" class="text-xs text-gray-500">(可選，留空使用官方完整地址)</span>
                     </label>
                     <input
                       v-model="provider.baseUrl"
@@ -200,7 +200,7 @@
                         />
                         <span class="text-sm font-medium whitespace-nowrap">{{ model.name }}</span>
                         
-                        <!-- 能力指示器 - 紧凑排列 -->
+                        <!-- 能力指示器 - 緊湊排列 -->
                         <div class="flex items-center space-x-1 flex-shrink-0">
                           <span v-if="model.capabilities?.reasoning" 
                                 class="inline-flex items-center text-xs bg-purple-100 text-purple-800 rounded-full w-4 h-4 justify-center"
@@ -217,7 +217,7 @@
                           </span>
                         </div>
                         
-                        <!-- API类型标签 - 更小 -->
+                        <!-- API類型標籤 - 更小 -->
                         <span 
                           v-if="model.apiType"
                           class="text-xs px-1.5 py-0.5 rounded text-white flex-shrink-0"
@@ -227,9 +227,9 @@
                         </span>
                       </div>
                       
-                      <!-- 操作按钮 -->
+                      <!-- 操作按鈕 -->
                       <div class="flex items-center space-x-1 flex-shrink-0">
-                        <!-- 模型级别测试按钮 -->
+                        <!-- 模型級別測試按鈕 -->
                         <button
                           @click="testModel(provider.id, model.id)"
                           :disabled="model.testStatus === 'testing' || !provider.apiKey"
@@ -247,20 +247,20 @@
                         <button
                           @click="editModel(provider.id, model)"
                           class="text-blue-500 hover:text-blue-700"
-                          title="编辑模型"
+                          title="編輯模型"
                         >
                           <Settings class="w-3 h-3" />
                         </button>
                         <button
                           @click="deleteModel(provider.id, model.id)"
                           class="text-red-500 hover:text-red-700"
-                          title="删除模型"
+                          title="刪除模型"
                         >
                           <X class="w-3 h-3" />
                         </button>
                       </div>
                       
-                      <!-- 错误信息 - 只在有错误时显示，占满宽度 -->
+                      <!-- 錯誤信息 - 只在有錯誤時顯示，佔滿寬度 -->
                       <div v-if="model.capabilities?.testResult?.error" class="absolute left-0 right-0 top-full mt-1 z-10">
                         <div class="text-xs text-red-500 bg-red-50 border border-red-200 rounded px-2 py-1 truncate" 
                              :title="model.capabilities.testResult.error">
@@ -275,64 +275,64 @@
           </div>
         </div>
 
-        <!-- 提示词规则标签页 -->
+        <!-- 提示詞規則標籤頁 -->
         <div v-if="activeTab === 'prompts'">
           <div class="space-y-6">
-            <!-- 系统提示词规则编辑器 -->
+            <!-- 系統提示詞規則編輯器 -->
             <div>
               <div class="flex items-center justify-between mb-3">
-                <h3 class="text-lg font-medium">系统提示词规则</h3>
+                <h3 class="text-lg font-medium">系統提示詞規則</h3>
                 <button
                   @click="resetSystemPromptRules"
                   class="text-sm text-gray-500 hover:text-gray-700 px-2 py-1 border border-gray-300 rounded"
                 >
-                  重置为默认
+                  重置爲默認
                 </button>
               </div>
               <textarea
                 v-model="settingsStore.editingSystemRules"
-                placeholder="输入系统提示词规则..."
+                placeholder="輸入系統提示詞規則..."
                 class="w-full h-48 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs"
               ></textarea>
-              <p class="text-xs text-gray-500 mt-1">系统提示词包含AI提示词工程的完整指南，用于生成高质量的提示词。</p>
+              <p class="text-xs text-gray-500 mt-1">系統提示詞包含AI提示詞工程的完整指南，用於生成高質量的提示詞。</p>
             </div>
 
-            <!-- 用户引导规则编辑器 -->
+            <!-- 用戶引導規則編輯器 -->
             <div>
               <div class="flex items-center justify-between mb-3">
-                <h3 class="text-lg font-medium">用户引导规则</h3>
+                <h3 class="text-lg font-medium">用戶引導規則</h3>
                 <button
                   @click="resetUserPromptRules"
                   class="text-sm text-gray-500 hover:text-gray-700 px-2 py-1 border border-gray-300 rounded"
                 >
-                  重置为默认
+                  重置爲默認
                 </button>
               </div>
               <textarea
                 v-model="settingsStore.editingUserRules"
-                placeholder="输入用户引导规则..."
+                placeholder="輸入用戶引導規則..."
                 class="w-full h-48 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs"
               ></textarea>
-              <p class="text-xs text-gray-500 mt-1">用户引导规则定义AI助手在对话中的行为方式，包括智能判断和对话终止机制。</p>
+              <p class="text-xs text-gray-500 mt-1">用戶引導規則定義AI助手在對話中的行爲方式，包括智能判斷和對話終止機制。</p>
             </div>
 
-            <!-- 需求报告规则编辑器 -->
+            <!-- 需求報告規則編輯器 -->
             <div>
               <div class="flex items-center justify-between mb-3">
-                <h3 class="text-lg font-medium">需求报告规则</h3>
+                <h3 class="text-lg font-medium">需求報告規則</h3>
                 <button
                   @click="resetRequirementReportRules"
                   class="text-sm text-gray-500 hover:text-gray-700 px-2 py-1 border border-gray-300 rounded"
                 >
-                  重置为默认
+                  重置爲默認
                 </button>
               </div>
               <textarea
                 v-model="settingsStore.editingRequirementReportRules"
-                placeholder="输入需求报告生成规则..."
+                placeholder="輸入需求報告生成規則..."
                 class="w-full h-48 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs"
               ></textarea>
-              <p class="text-xs text-gray-500 mt-1">需求报告规则用于基于用户对话历史生成完整的需求总结报告。</p>
+              <p class="text-xs text-gray-500 mt-1">需求報告規則用於基於用戶對話歷史生成完整的需求總結報告。</p>
             </div>
           </div>
         </div>
@@ -350,19 +350,19 @@
           @click="saveAndClose"
           class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
         >
-          保存设置
+          保存設置
         </button>
       </div>
     </div>
   </div>
 
-  <!-- 选择提供商类型弹窗 -->
+  <!-- 選擇提供商類型彈窗 -->
   <div
     v-if="showAddProviderTypeDialog"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
   >
     <div class="bg-white rounded-lg max-w-md w-full p-6">
-      <h3 class="text-lg font-semibold mb-4">选择提供商类型</h3>
+      <h3 class="text-lg font-semibold mb-4">選擇提供商類型</h3>
       
       <div class="space-y-3">
         <button
@@ -392,21 +392,21 @@
     </div>
   </div>
 
-  <!-- 添加提供商弹窗 -->
+  <!-- 添加提供商彈窗 -->
   <div
     v-if="showAddProvider"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
   >
     <div class="bg-white rounded-lg max-w-md w-full p-6">
-      <h3 class="text-lg font-semibold mb-4">{{ editingProvider ? '编辑提供商' : `添加${selectedProviderType === 'custom' ? '自定义' : ''}提供商` }}</h3>
+      <h3 class="text-lg font-semibold mb-4">{{ editingProvider ? '編輯提供商' : `添加${selectedProviderType === 'custom' ? '自定義' : ''}提供商` }}</h3>
       
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">提供商名称</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">提供商名稱</label>
           <input
             v-model="newProvider.name"
             type="text"
-            :placeholder="selectedProviderType === 'custom' ? '例如：DeepSeek' : '可自定义名称'"
+            :placeholder="selectedProviderType === 'custom' ? '例如：DeepSeek' : '可自定義名稱'"
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -414,7 +414,7 @@
         <div v-if="selectedProviderType === 'custom' || (selectedProviderType && ['openai', 'anthropic', 'google'].includes(selectedProviderType) && getProviderTemplate(selectedProviderType).allowCustomUrl)">
           <label class="block text-sm font-medium text-gray-700 mb-1">
             API URL
-            <span v-if="selectedProviderType !== 'custom'" class="text-xs text-gray-500">(可选，留空使用官方完整地址)</span>
+            <span v-if="selectedProviderType !== 'custom'" class="text-xs text-gray-500">(可選，留空使用官方完整地址)</span>
           </label>
           <input
             v-model="newProvider.baseUrl"
@@ -425,11 +425,11 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">API密钥</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">API密鑰</label>
           <input
             v-model="newProvider.apiKey"
             type="password"
-            placeholder="输入API密钥"
+            placeholder="輸入API密鑰"
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -453,17 +453,17 @@
     </div>
   </div>
 
-  <!-- 添加模型弹窗 -->
+  <!-- 添加模型彈窗 -->
   <div
     v-if="showAddModelDialog"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
   >
     <div class="bg-white rounded-lg max-w-md w-full p-6">
-      <h3 class="text-lg font-semibold mb-4">{{ editingModel ? '编辑模型' : '添加模型' }}</h3>
+      <h3 class="text-lg font-semibold mb-4">{{ editingModel ? '編輯模型' : '添加模型' }}</h3>
       
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">模型名称</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">模型名稱</label>
           <input
             v-model="newModel.name"
             type="text"
@@ -475,14 +475,14 @@
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="block text-sm font-medium text-gray-700">模型ID</label>
-            <!-- 只有OpenAI、Google和自定义提供商显示获取按钮，Anthropic不支持 -->
+            <!-- 只有OpenAI、Google和自定義提供商顯示獲取按鈕，Anthropic不支持 -->
             <button
               v-if="getProviderForModel(addingModelToProvider)?.type !== 'anthropic'"
               @click="fetchAvailableModels"
               :disabled="loadingModels"
               class="text-xs text-blue-500 hover:text-blue-700 disabled:opacity-50"
             >
-              {{ loadingModels ? '获取中...' : '🔄 获取模型列表' }}
+              {{ loadingModels ? '獲取中...' : '🔄 獲取模型列表' }}
             </button>
           </div>
           <input
@@ -492,9 +492,9 @@
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           
-          <!-- 可选择的模型列表 -->
+          <!-- 可選擇的模型列表 -->
           <div v-if="getCurrentProviderModels.length > 0" class="mt-2">
-            <p class="text-xs text-gray-600 mb-2">点击选择模型：</p>
+            <p class="text-xs text-gray-600 mb-2">點擊選擇模型：</p>
             <div class="max-h-32 overflow-y-auto border border-gray-200 rounded">
               <div
                 v-for="modelId in getCurrentProviderModels"
@@ -507,25 +507,25 @@
             </div>
           </div>
           
-          <!-- 获取失败提示 -->
+          <!-- 獲取失敗提示 -->
           <div v-if="modelFetchError" class="mt-2">
             <p class="text-xs text-red-600">{{ modelFetchError }}</p>
           </div>
         </div>
 
         <div v-if="getProviderForModel(addingModelToProvider)?.type === 'custom'">
-          <label class="block text-sm font-medium text-gray-700 mb-1">API类型</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">API類型</label>
           <select
             v-model="newModel.apiType"
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="">选择API类型</option>
+            <option value="">選擇API類型</option>
             <option value="openai">OpenAI 兼容</option>
             <option value="anthropic">Anthropic 兼容</option>
             <option value="google">Gemini 兼容</option>
           </select>
           <p class="text-xs text-gray-500 mt-1">
-            选择此模型使用的API协议类型。大多数第三方代理服务使用OpenAI兼容格式。
+            選擇此模型使用的API協議類型。大多數第三方代理服務使用OpenAI兼容格式。
           </p>
         </div>
       </div>
@@ -560,13 +560,13 @@ const settingsStore = useSettingsStore()
 const notificationStore = useNotificationStore()
 const aiService = AIService.getInstance()
 
-// 标签页状态
+// 標籤頁狀態
 const activeTab = ref('providers')
 
-// 监听标签页切换，自动加载提示词内容
+// 監聽標籤頁切換，自動加載提示詞內容
 watch(activeTab, (newTab) => {
   if (newTab === 'prompts') {
-    // 打开提示词编辑器并加载内容
+    // 打開提示詞編輯器並加載內容
     settingsStore.openPromptEditor('system')
   }
 })
@@ -577,7 +577,7 @@ const showAddModelDialog = ref(false)
 const testingProvider = ref<string | null>(null)
 const addingModelToProvider = ref<string>('')
 const editingModel = ref<any>(null)
-const editingProvider = ref<any>(null) // 正在编辑的提供商
+const editingProvider = ref<any>(null) // 正在編輯的提供商
 const selectedProviderType = ref<'openai' | 'anthropic' | 'google' | 'custom'>('custom')
 
 const newProvider = ref({
@@ -592,41 +592,41 @@ const newModel = ref({
   apiType: '' as 'openai' | 'anthropic' | 'google' | ''
 })
 
-// 模型列表获取相关状态
+// 模型列表獲取相關狀態
 const loadingModels = ref(false)
-const providerModelsCache = ref<Record<string, string[]>>({}) // 按提供商ID缓存模型列表
+const providerModelsCache = ref<Record<string, string[]>>({}) // 按提供商ID緩存模型列表
 const modelFetchError = ref('')
 
-// 获取当前提供商的模型列表
+// 獲取當前提供商的模型列表
 const getCurrentProviderModels = computed(() => {
   return providerModelsCache.value[addingModelToProvider.value] || []
 })
 
-// 可用的提供商类型
+// 可用的提供商類型
 const availableProviderTypes = computed(() => {
   return [
     {
       type: 'openai' as const,
       name: 'OpenAI',
-      description: '官方OpenAI API或兼容服务',
+      description: '官方OpenAI API或兼容服務',
       color: 'bg-green-500'
     },
     {
       type: 'anthropic' as const,
       name: 'Anthropic',
-      description: '官方Claude API或兼容服务',
+      description: '官方Claude API或兼容服務',
       color: 'bg-purple-500'
     },
     {
       type: 'google' as const,
       name: 'Gemini',
-      description: '官方Gemini API或兼容服务',
+      description: '官方Gemini API或兼容服務',
       color: 'bg-blue-500'
     },
     {
       type: 'custom' as const,
-      name: '自定义服务',
-      description: '第三方API服务或中转代理',
+      name: '自定義服務',
+      description: '第三方API服務或中轉代理',
       color: 'bg-gray-500'
     }
   ]
@@ -636,17 +636,17 @@ onMounted(() => {
   settingsStore.loadSettings()
 })
 
-// 获取模型所属的提供商
+// 獲取模型所屬的提供商
 const getProviderForModel = (providerId: string) => {
   return settingsStore.providers.find(p => p.id === providerId)
 }
 
-// 获取提供商模板
+// 獲取提供商模板
 const getProviderTemplate = (type: 'openai' | 'anthropic' | 'google' | 'custom') => {
   return settingsStore.getProviderTemplate(type)
 }
 
-// 获取默认完整API URL
+// 獲取默認完整API URL
 const getDefaultBaseUrl = (type: string) => {
   switch (type) {
     case 'openai':
@@ -662,7 +662,7 @@ const getDefaultBaseUrl = (type: string) => {
   }
 }
 
-// 获取API类型颜色
+// 獲取API類型顏色
 const getApiTypeColor = (apiType: string) => {
   switch (apiType) {
     case 'openai':
@@ -676,7 +676,7 @@ const getApiTypeColor = (apiType: string) => {
   }
 }
 
-// 获取API类型标签
+// 獲取API類型標籤
 const getApiTypeLabel = (apiType: string) => {
   switch (apiType) {
     case 'openai':
@@ -690,18 +690,18 @@ const getApiTypeLabel = (apiType: string) => {
   }
 }
 
-// 选择提供商类型
+// 選擇提供商類型
 const selectProviderType = (type: 'openai' | 'anthropic' | 'google' | 'custom') => {
   showAddProviderTypeDialog.value = false
   selectedProviderType.value = type
   
-  // 只在添加模式下重置表单
+  // 只在添加模式下重置表單
   if (!editingProvider.value) {
     if (type === 'custom') {
-      // 自定义提供商需要填写所有信息
+      // 自定義提供商需要填寫所有信息
       newProvider.value = { name: '', baseUrl: '', apiKey: '' }
     } else {
-      // 官方提供商可以自定义名称
+      // 官方提供商可以自定義名稱
       const template = settingsStore.getProviderTemplate(type)
       newProvider.value = { 
         name: template.name, 
@@ -714,7 +714,7 @@ const selectProviderType = (type: 'openai' | 'anthropic' | 'google' | 'custom') 
   showAddProvider.value = true
 }
 
-// 编辑模型
+// 編輯模型
 const editModel = (providerId: string, model: any) => {
   editingModel.value = model
   addingModelToProvider.value = providerId
@@ -726,14 +726,14 @@ const editModel = (providerId: string, model: any) => {
   showAddModelDialog.value = true
 }
 
-// 关闭提供商弹窗
+// 關閉提供商彈窗
 const closeProviderDialog = () => {
   showAddProvider.value = false
   editingProvider.value = null
   newProvider.value = { name: '', baseUrl: '', apiKey: '' }
 }
 
-// 编辑提供商
+// 編輯提供商
 const editProvider = (provider: any) => {
   editingProvider.value = provider
   selectedProviderType.value = provider.type
@@ -745,34 +745,34 @@ const editProvider = (provider: any) => {
   showAddProvider.value = true
 }
 
-// 删除提供商
+// 刪除提供商
 const deleteProvider = (providerId: string) => {
-  if (confirm('确定要删除这个提供商吗？这将同时删除其所有模型配置。')) {
+  if (confirm('確定要刪除這個提供商嗎？這將同時刪除其所有模型配置。')) {
     settingsStore.deleteProvider(providerId)
     settingsStore.saveSettings()
-    notificationStore.success('提供商已删除')
+    notificationStore.success('提供商已刪除')
   }
 }
 
-// 删除模型
+// 刪除模型
 const deleteModel = (providerId: string, modelId: string) => {
-  if (confirm('确定要删除这个模型吗？')) {
+  if (confirm('確定要刪除這個模型嗎？')) {
     settingsStore.deleteModel(providerId, modelId)
     settingsStore.saveSettings()
-    notificationStore.success('模型已删除')
+    notificationStore.success('模型已刪除')
   }
 }
 
-// 测试连接
+// 測試連接
 const testConnection = async (provider: any) => {
   if (!provider.apiKey) {
-    notificationStore.warning('请先配置API密钥')
+    notificationStore.warning('請先配置API密鑰')
     return
   }
 
   const firstModel = provider.models.find((m: any) => m.enabled)
   if (!firstModel) {
-    notificationStore.warning('请先启用至少一个模型')
+    notificationStore.warning('請先啓用至少一個模型')
     return
   }
 
@@ -780,18 +780,18 @@ const testConnection = async (provider: any) => {
   try {
     const success = await aiService.testConnection(provider, firstModel.id)
     if (success) {
-      notificationStore.success('连接测试成功！')
+      notificationStore.success('連接測試成功！')
     } else {
-      notificationStore.error('连接测试失败，请检查配置')
+      notificationStore.error('連接測試失敗，請檢查配置')
     }
   } catch (error) {
-    notificationStore.error(`连接测试失败: ${error}`)
+    notificationStore.error(`連接測試失敗: ${error}`)
   } finally {
     testingProvider.value = null
   }
 }
 
-// 新增：模型级别测试（优化版）
+// 新增：模型級別測試（優化版）
 const testModel = async (providerId: string, modelId: string) => {
   const provider = settingsStore.providers.find(p => p.id === providerId)
   if (!provider) {
@@ -800,11 +800,11 @@ const testModel = async (providerId: string, modelId: string) => {
   }
   
   if (!provider.apiKey) {
-    notificationStore.warning('请先配置API密钥')
+    notificationStore.warning('請先配置API密鑰')
     return
   }
 
-  // 1. 手动清空之前的状态
+  // 1. 手動清空之前的狀態
   const model = provider.models.find(m => m.id === modelId)
   if (model) {
     model.testStatus = 'untested'
@@ -812,72 +812,72 @@ const testModel = async (providerId: string, modelId: string) => {
     model.lastTested = undefined
   }
   
-  // 2. 设置测试中状态
+  // 2. 設置測試中狀態
   settingsStore.updateModelTestStatus(providerId, modelId, 'testing')
   
   try {
     const { CapabilityDetector } = await import('@/services/capabilityDetector')
     const detector = CapabilityDetector.getInstance()
     
-    // 使用优化的检测方法：快速连接 + 异步思考
+    // 使用優化的檢測方法：快速連接 + 異步思考
     await detector.detectCapabilitiesWithCallback(
       provider, 
       modelId,
-      // 连接结果回调（快速响应，立即显示✅）
+      // 連接結果回調（快速響應，立即顯示✅）
       (connected: boolean, responseTime: number, error?: string) => {
         if (connected) {
-          // 立即更新连接状态，显示✅指示器
+          // 立即更新連接狀態，顯示✅指示器
           settingsStore.updateModelConnectionStatus(providerId, modelId, true)
-          notificationStore.success(`模型 ${modelId} 连接成功！(${responseTime}ms) 正在后台检测思考能力...`)
+          notificationStore.success(`模型 ${modelId} 連接成功！(${responseTime}ms) 正在後臺檢測思考能力...`)
         } else {
           settingsStore.updateModelConnectionStatus(providerId, modelId, false, error)
-          notificationStore.error(`模型 ${modelId} 连接失败：${error || '未知错误'}`)
+          notificationStore.error(`模型 ${modelId} 連接失敗：${error || '未知錯誤'}`)
         }
-        // 保存设置（连接状态）
+        // 保存設置（連接狀態）
         settingsStore.saveSettings()
       },
-      // 思考能力结果回调（异步更新，可能会额外显示🧠）
+      // 思考能力結果回調（異步更新，可能會額外顯示🧠）
       (capabilities) => {
         settingsStore.updateModelCapabilities(providerId, modelId, capabilities)
         
         if (capabilities.reasoning) {
           const thinkingType = settingsStore.getReasoningTypeDescription(capabilities.reasoningType)
-          notificationStore.success(`🧠 模型 ${modelId} 思考能力检测完成：支持${thinkingType}`)
+          notificationStore.success(`🧠 模型 ${modelId} 思考能力檢測完成：支持${thinkingType}`)
         }
         
-        // 保存设置（最终结果）
+        // 保存設置（最終結果）
         settingsStore.saveSettings()
       },
-      true // 强制刷新缓存，因为用户主动点击测试
+      true // 強制刷新緩存，因爲用戶主動點擊測試
     )
     
   } catch (error) {
     settingsStore.updateModelTestStatus(providerId, modelId, 'failed')
-    notificationStore.error(`模型 ${modelId} 测试出错：${(error as Error).message}`)
+    notificationStore.error(`模型 ${modelId} 測試出錯：${(error as Error).message}`)
     settingsStore.saveSettings()
   }
 }
 
-// 获取测试按钮提示文本
+// 獲取測試按鈕提示文本
 const getTestButtonTitle = (model: any) => {
   switch (model.testStatus) {
     case 'testing':
-      return '测试中...'
+      return '測試中...'
     case 'success':
-      return '重新测试'
+      return '重新測試'
     case 'failed':
-      return '重新测试'
+      return '重新測試'
     default:
-      return '测试模型连接和能力'
+      return '測試模型連接和能力'
   }
 }
 
 
-// 保存提供商（添加或编辑）
+// 保存提供商（添加或編輯）
 const saveProvider = () => {
   try {
     if (editingProvider.value) {
-      // 编辑模式
+      // 編輯模式
       const provider = settingsStore.providers.find(p => p.id === editingProvider.value.id)
       if (provider) {
         provider.name = newProvider.value.name
@@ -901,23 +901,23 @@ const saveProvider = () => {
     settingsStore.saveSettings()
     notificationStore.success(editingProvider.value ? '提供商已更新' : '提供商已添加')
   } catch (error) {
-    notificationStore.error(`保存失败: ${error}`)
+    notificationStore.error(`保存失敗: ${error}`)
   }
 }
 
-// 添加/编辑模型
+// 添加/編輯模型
 const addCustomModel = () => {
   const provider = settingsStore.providers.find(p => p.id === addingModelToProvider.value)
   if (!provider) return
   
-  // 对于官方提供商，使用固定的API类型，对于自定义提供商，使用选择的类型
+  // 對於官方提供商，使用固定的API類型，對於自定義提供商，使用選擇的類型
   let apiType = newModel.value.apiType
   if (provider.type !== 'custom') {
     apiType = provider.type
   }
   
   if (editingModel.value) {
-    // 编辑模式
+    // 編輯模式
     if (provider) {
       const modelIndex = provider.models.findIndex(m => m.id === editingModel.value.id)
       if (modelIndex > -1) {
@@ -946,24 +946,24 @@ const addCustomModel = () => {
   settingsStore.saveSettings()
 }
 
-// 显示添加模型弹窗
+// 顯示添加模型彈窗
 const showAddModel = (providerId: string) => {
   editingModel.value = null
   addingModelToProvider.value = providerId
   
-  // 重置状态（但保留缓存的模型列表）
+  // 重置狀態（但保留緩存的模型列表）
   loadingModels.value = false
   modelFetchError.value = ''
   
-  // 为提供商预设API类型
+  // 爲提供商預設API類型
   const provider = getProviderForModel(providerId)
   let defaultApiType = ''
   
   if (provider?.type === 'custom') {
-    // 自定义提供商默认使用OpenAI兼容
+    // 自定義提供商默認使用OpenAI兼容
     defaultApiType = 'openai'
   } else if (provider?.type && provider.type in ['openai', 'anthropic', 'google']) {
-    // 官方提供商使用对应的类型
+    // 官方提供商使用對應的類型
     defaultApiType = provider.type
   }
   
@@ -971,7 +971,7 @@ const showAddModel = (providerId: string) => {
   showAddModelDialog.value = true
 }
 
-// 获取可用模型列表
+// 獲取可用模型列表
 const fetchAvailableModels = async () => {
   try {
     loadingModels.value = true
@@ -979,70 +979,70 @@ const fetchAvailableModels = async () => {
     
     const providerId = addingModelToProvider.value
     
-    // 获取当前提供商信息
+    // 獲取當前提供商信息
     const provider = getProviderForModel(providerId)
     if (!provider) {
       throw new Error('未找到提供商信息')
     }
     
-    // 检查是否有必要的信息
+    // 檢查是否有必要的信息
     if (!provider.apiKey || !provider.baseUrl) {
-      throw new Error('请先配置提供商的API密钥和基础URL')
+      throw new Error('請先配置提供商的API密鑰和基礎URL')
     }
     
-    // 获取模型列表，优先使用用户选择的API类型
+    // 獲取模型列表，優先使用用戶選擇的API類型
     const preferredApiType = newModel.value.apiType as 'openai' | 'anthropic' | 'google' | undefined
     const models = await aiService.getAvailableModels(provider, preferredApiType)
     
-    // 将模型列表缓存到对应的提供商
+    // 將模型列表緩存到對應的提供商
     providerModelsCache.value[providerId] = models
     
     if (models.length === 0) {
       modelFetchError.value = '未找到可用模型'
     }
   } catch (error: any) {
-    modelFetchError.value = error.message || '获取模型列表失败，请手动输入模型ID'
+    modelFetchError.value = error.message || '獲取模型列表失敗，請手動輸入模型ID'
   } finally {
     loadingModels.value = false
   }
 }
 
-// 选择模型
+// 選擇模型
 const selectModel = (modelId: string) => {
   newModel.value.id = modelId
-  // 如果模型名称为空，使用模型ID作为默认名称
+  // 如果模型名稱爲空，使用模型ID作爲默認名稱
   if (!newModel.value.name) {
     newModel.value.name = modelId
   }
 }
 
-// 重置系统提示词规则
+// 重置系統提示詞規則
 const resetSystemPromptRules = () => {
-  if (confirm('确定要重置系统提示词规则为默认值吗？')) {
+  if (confirm('確定要重置系統提示詞規則爲默認值嗎？')) {
     settingsStore.resetSystemPromptRules()
   }
 }
 
-// 重置用户引导规则
+// 重置用戶引導規則
 const resetUserPromptRules = () => {
-  if (confirm('确定要重置用户引导规则为默认值吗？')) {
+  if (confirm('確定要重置用戶引導規則爲默認值嗎？')) {
     settingsStore.resetUserPromptRules()
   }
 }
 
-// 重置需求报告规则
+// 重置需求報告規則
 const resetRequirementReportRules = () => {
-  if (confirm('确定要重置需求报告规则为默认值吗？')) {
+  if (confirm('確定要重置需求報告規則爲默認值嗎？')) {
     settingsStore.resetRequirementReportRules()
   }
 }
 
 const saveAndClose = () => {
-  // 保存提示词规则（如果有修改的话）
+  // 保存提示詞規則（如果有修改的話）
   if (settingsStore.editingSystemRules || settingsStore.editingUserRules || settingsStore.editingRequirementReportRules) {
     settingsStore.savePromptRules()
   }
-  // 保存其他设置
+  // 保存其他設置
   settingsStore.saveSettings()
   settingsStore.showSettings = false
 }

@@ -1,40 +1,40 @@
 /**
- * AI响应处理工具函数
+ * AI響應處理工具函數
  */
 
 /**
- * 清理AI响应中的评估标签和markdown代码块标记
+ * 清理AI響應中的評估標籤和markdown代碼塊標記
  */
 export const cleanAIResponse = (response: string): string => {
   try {
-    // 移除完整的think标签及其内容
+    // 移除完整的think標籤及其內容
     let cleaned = response.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
     
-    // 移除完整的评估标签及其内容
+    // 移除完整的評估標籤及其內容
     cleaned = cleaned.replace(/<ASSESSMENT>[\s\S]*?<\/ASSESSMENT>/gi, '').trim()
     
-    // 处理流式过程中不完整的think标签
+    // 處理流式過程中不完整的think標籤
     const thinkStart = cleaned.indexOf('<think>')
     if (thinkStart !== -1) {
       cleaned = cleaned.substring(0, thinkStart).trim()
     }
     
-    // 处理流式过程中不完整的评估标签
-    // 如果发现开始标签但没有结束标签，截断到开始标签之前
+    // 處理流式過程中不完整的評估標籤
+    // 如果發現開始標籤但沒有結束標籤，截斷到開始標籤之前
     const assessmentStart = cleaned.indexOf('<ASSESSMENT>')
     if (assessmentStart !== -1) {
       cleaned = cleaned.substring(0, assessmentStart).trim()
     }
     
-    // 处理其他可能的不完整标签模式
+    // 處理其他可能的不完整標籤模式
     const patterns = [
-      /<thin[^>]*$/i,     // 不完整的think开始标签
-      /<\/thin[^>]*$/i,   // 不完整的think结束标签
-      /\n\n<thin/i,       // 换行后的think标签
-      /<ASSE[^>]*$/i,     // 不完整的评估开始标签
-      /<\/ASSE[^>]*$/i,   // 不完整的评估结束标签
-      /\n\n<ASSE/i,       // 换行后的评估标签
-      /CONTEXT:/i,        // 评估内容的关键词
+      /<thin[^>]*$/i,     // 不完整的think開始標籤
+      /<\/thin[^>]*$/i,   // 不完整的think結束標籤
+      /\n\n<thin/i,       // 換行後的think標籤
+      /<ASSE[^>]*$/i,     // 不完整的評估開始標籤
+      /<\/ASSE[^>]*$/i,   // 不完整的評估結束標籤
+      /\n\n<ASSE/i,       // 換行後的評估標籤
+      /CONTEXT:/i,        // 評估內容的關鍵詞
       /TASK:/i,
       /FORMAT:/i,
       /QUALITY:/i,
@@ -53,40 +53,40 @@ export const cleanAIResponse = (response: string): string => {
     
     return cleaned
   } catch (error) {
-    return response // 清理失败时返回原内容
+    return response // 清理失敗時返回原內容
   }
 }
 
 /**
- * 清理AI响应中的markdown代码块标记和多余描述（用于格式转换）
+ * 清理AI響應中的markdown代碼塊標記和多餘描述（用於格式轉換）
  */
 export const cleanAIResponseForFormatting = (response: string): string => {
   return response
-    // 移除think标签（防御性清理）
+    // 移除think標籤（防禦性清理）
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
-    .replace(/^```[\w]*\n?/gm, '')  // 移除开头的 ```xml 或 ```
-    .replace(/\n?```$/gm, '')       // 移除结尾的 ```
-    // 移除常见的AI介绍性文字
+    .replace(/^```[\w]*\n?/gm, '')  // 移除開頭的 ```xml 或 ```
+    .replace(/\n?```$/gm, '')       // 移除結尾的 ```
+    // 移除常見的AI介紹性文字
     .replace(/^Here is the.*?translation.*?:\s*/i, '')
     .replace(/^Here is the.*?converted.*?:\s*/i, '')
     .replace(/^Here is.*?:\s*/i, '')
-    .replace(/^以下是.*?翻译.*?：\s*/i, '')
-    .replace(/^以下是.*?转换.*?：\s*/i, '')
+    .replace(/^以下是.*?翻譯.*?：\s*/i, '')
+    .replace(/^以下是.*?轉換.*?：\s*/i, '')
     .replace(/^以下是.*?：\s*/i, '')
-    .replace(/^.*?翻译结果.*?：\s*/i, '')
-    .replace(/^.*?转换结果.*?：\s*/i, '')
+    .replace(/^.*?翻譯結果.*?：\s*/i, '')
+    .replace(/^.*?轉換結果.*?：\s*/i, '')
     .trim()
 }
 
 /**
- * 检查AI响应中是否包含结束对话的决策
+ * 檢查AI響應中是否包含結束對話的決策
  */
 export const checkAIDecision = (response: string): boolean => {
   try {
-    // 检查是否包含评估标签
+    // 檢查是否包含評估標籤
     const assessmentMatch = response.match(/<ASSESSMENT>([\s\S]*?)<\/ASSESSMENT>/i)
     if (!assessmentMatch) {
-      return false // 没有评估标签，继续对话
+      return false // 沒有評估標籤，繼續對話
     }
     
     const assessmentContent = assessmentMatch[1]
@@ -100,6 +100,6 @@ export const checkAIDecision = (response: string): boolean => {
     
     return false
   } catch (error) {
-    return false // 解析错误时继续对话
+    return false // 解析錯誤時繼續對話
   }
 }

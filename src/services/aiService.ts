@@ -1,7 +1,7 @@
 import type { ProviderConfig } from '@/stores/settingsStore'
 import type { MessageAttachment } from '@/stores/promptStore'
 
-// 多模态内容类型
+// 多模態內容類型
 export interface MessageContent {
   type: 'text' | 'image_url' | 'image'
   text?: string
@@ -23,12 +23,12 @@ export interface ChatMessage {
 
 export class AIService {
   private static instance: AIService
-  private thinkBuffer: string = ''  // 用于处理跨chunk的<think>标签
-  private isInThinkMode: boolean = false  // 是否正在处理think标签内容
+  private thinkBuffer: string = ''  // 用於處理跨chunk的<think>標籤
+  private isInThinkMode: boolean = false  // 是否正在處理think標籤內容
 
-  private constructor() {}
+  private function Object() { [native code] }() {}
 
-  // 创建带超时的fetch请求
+  // 創建帶超時的fetch請求
   private async fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number = 300000): Promise<Response> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
@@ -44,9 +44,9 @@ export class AIService {
     }
   }
 
-  // 清理<think></think>标签内容，支持流式增量处理
+  // 清理<think></think>標籤內容，支持流式增量處理
   private filterThinkTags(chunk: string): string {
-    // 将新的chunk添加到缓冲区
+    // 將新的chunk添加到緩衝區
     this.thinkBuffer += chunk
     
     let result = ''
@@ -54,39 +54,39 @@ export class AIService {
     
     while (i < this.thinkBuffer.length) {
       if (this.isInThinkMode) {
-        // 正在think标签内部，查找</think>标签
+        // 正在think標籤內部，查找</think>標籤
         const closeTagIndex = this.thinkBuffer.indexOf('</think>', i)
         if (closeTagIndex !== -1) {
-          // 找到结束标签，跳过该部分
+          // 找到結束標籤，跳過該部分
           this.isInThinkMode = false
-          i = closeTagIndex + 8 // 跳过</think>
+          i = closeTagIndex + 8 // 跳過</think>
         } else {
-          // 没找到结束标签，说明标签还未完整，保留剩余内容在缓冲区
+          // 沒找到結束標籤，說明標籤還未完整，保留剩餘內容在緩衝區
           this.thinkBuffer = this.thinkBuffer.substring(i)
           return result
         }
       } else {
-        // 不在think标签内部，查找<think>标签
+        // 不在think標籤內部，查找<think>標籤
         const openTagIndex = this.thinkBuffer.indexOf('<think>', i)
         if (openTagIndex !== -1) {
-          // 找到开始标签，添加之前的内容到结果
+          // 找到開始標籤，添加之前的內容到結果
           result += this.thinkBuffer.substring(i, openTagIndex)
           this.isInThinkMode = true
-          i = openTagIndex + 7 // 跳过<think>
+          i = openTagIndex + 7 // 跳過<think>
         } else {
-          // 没找到开始标签，检查是否有不完整的标签
+          // 沒找到開始標籤，檢查是否有不完整的標籤
           const partialTagIndex = this.thinkBuffer.lastIndexOf('<')
           if (partialTagIndex !== -1 && partialTagIndex >= i) {
             const remainingText = this.thinkBuffer.substring(partialTagIndex)
             if ('<think>'.startsWith(remainingText)) {
-              // 可能是不完整的<think>标签，保留在缓冲区
+              // 可能是不完整的<think>標籤，保留在緩衝區
               result += this.thinkBuffer.substring(i, partialTagIndex)
               this.thinkBuffer = remainingText
               return result
             }
           }
           
-          // 没有不完整的标签，添加所有剩余内容
+          // 沒有不完整的標籤，添加所有剩餘內容
           result += this.thinkBuffer.substring(i)
           this.thinkBuffer = ''
           return result
@@ -98,17 +98,17 @@ export class AIService {
     return result
   }
 
-  // 重置think标签处理状态
+  // 重置think標籤處理狀態
   private resetThinkState(): void {
     this.thinkBuffer = ''
     this.isInThinkMode = false
   }
 
-  // 清理完整文本中的<think></think>标签内容（用于最终结果处理）
+  // 清理完整文本中的<think></think>標籤內容（用於最終結果處理）
   private cleanThinkTagsFromFullText(text: string): string {
     if (!text) return text
     
-    // 使用正则表达式移除所有<think>...</think>标签及其内容
+    // 使用正則表達式移除所有<think>...</think>標籤及其內容
     return text.replace(/<think>[\s\S]*?<\/think>/g, '')
   }
 
@@ -119,7 +119,7 @@ export class AIService {
     return AIService.instance
   }
 
-  // 将附件转换为OpenAI格式的内容
+  // 將附件轉換爲OpenAI格式的內容
   private convertAttachmentsToOpenAI(attachments: MessageAttachment[]): MessageContent[] {
     return attachments
       .map(att => {
@@ -132,7 +132,7 @@ export class AIService {
         })
         
         if (att.type === 'image') {
-          // OpenAI主要支持图片格式
+          // OpenAI主要支持圖片格式
           return {
             type: 'image_url' as const,
             image_url: {
@@ -141,14 +141,14 @@ export class AIService {
           } as MessageContent
         }
         
-        // OpenAI目前主要支持图片，其他类型可以在这里扩展
+        // OpenAI目前主要支持圖片，其他類型可以在這裏擴展
         console.warn(`[AIService] OpenAI currently mainly supports images. Skipping ${att.type}: ${att.mimeType}`)
         return null
       })
       .filter((item): item is MessageContent => item !== null)
   }
 
-  // 将附件转换为Anthropic格式的内容
+  // 將附件轉換爲Anthropic格式的內容
   private convertAttachmentsToAnthropic(attachments: MessageAttachment[]): MessageContent[] {
     return attachments
       .map(att => {
@@ -161,7 +161,7 @@ export class AIService {
         })
         
         if (att.type === 'image') {
-          // Claude支持图片格式
+          // Claude支持圖片格式
           return {
             type: 'image' as const,
             source: {
@@ -171,13 +171,13 @@ export class AIService {
             }
           } as MessageContent
         } else if (att.type === 'document') {
-          // Claude支持某些文档格式，但需要特殊处理
-          // 目前Claude主要支持图片，文档内容可以作为文本传递
+          // Claude支持某些文檔格式，但需要特殊處理
+          // 目前Claude主要支持圖片，文檔內容可以作爲文本傳遞
           const supportedDocumentTypes = ['text/plain', 'text/markdown', 'application/json']
           
           if (supportedDocumentTypes.includes(att.mimeType)) {
-            // 对于文本文档，可以尝试解码并作为文本内容传递
-            // 注意：这里需要根据实际API能力调整
+            // 對於文本文檔，可以嘗試解碼並作爲文本內容傳遞
+            // 注意：這裏需要根據實際API能力調整
             console.info(`[AIService] Anthropic document support limited. Consider converting ${att.mimeType} to text.`)
           }
           
@@ -185,14 +185,14 @@ export class AIService {
           return null
         }
         
-        // Claude目前主要支持图片，其他类型暂不支持
+        // Claude目前主要支持圖片，其他類型暫不支持
         console.warn(`[AIService] Anthropic currently mainly supports images. Skipping ${att.type}: ${att.mimeType}`)
         return null
       })
       .filter((item): item is MessageContent => item !== null)
   }
 
-  // 将附件转换为Gemini格式的内容
+  // 將附件轉換爲Gemini格式的內容
   private convertAttachmentsToGemini(attachments: MessageAttachment[]): any[] {
     return attachments.map(att => {
       console.log(`[AIService] Converting attachment for Gemini:`, {
@@ -204,7 +204,7 @@ export class AIService {
       })
       
       if (att.type === 'image') {
-        // 图片文件
+        // 圖片文件
         return {
           inline_data: {
             mime_type: att.mimeType,
@@ -212,8 +212,8 @@ export class AIService {
           }
         }
       } else if (att.type === 'document') {
-        // 文档文件 - Gemini支持多种文档格式
-        // 支持的文档类型包括：text/plain, application/pdf, text/html, text/css, text/javascript, application/json等
+        // 文檔文件 - Gemini支持多種文檔格式
+        // 支持的文檔類型包括：text/plain, application/pdf, text/html, text/css, text/javascript, application/json等
         const supportedDocumentTypes = [
           'text/plain',
           'text/html',
@@ -225,7 +225,7 @@ export class AIService {
           'text/csv',
           'text/xml',
           'application/xml',
-          // Microsoft Office 文档
+          // Microsoft Office 文檔
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
           'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
@@ -247,7 +247,7 @@ export class AIService {
           return null
         }
       } else if (att.type === 'audio') {
-        // 音频文件 - Gemini支持某些音频格式
+        // 音頻文件 - Gemini支持某些音頻格式
         const supportedAudioTypes = [
           'audio/wav',
           'audio/mp3',
@@ -269,7 +269,7 @@ export class AIService {
           return null
         }
       } else if (att.type === 'video') {
-        // 视频文件 - Gemini支持某些视频格式
+        // 視頻文件 - Gemini支持某些視頻格式
         const supportedVideoTypes = [
           'video/mp4',
           'video/mpeg',
@@ -294,13 +294,13 @@ export class AIService {
         }
       }
       
-      // 不支持的文件类型
+      // 不支持的文件類型
       console.warn(`[AIService] Unsupported attachment type for Gemini: ${att.type}`)
       return null
     }).filter(Boolean)
   }
 
-  // 将ChatMessage转换为多模态内容
+  // 將ChatMessage轉換爲多模態內容
   private convertToMultimodalContent(message: ChatMessage, apiType: string): MessageContent[] | any[] {
     const content: MessageContent[] | any[] = []
     
@@ -310,7 +310,7 @@ export class AIService {
       attachments: message.attachments?.map(att => ({ name: att.name, type: att.type, size: att.size }))
     })
     
-    // 添加文本内容
+    // 添加文本內容
     if (typeof message.content === 'string' && message.content.trim()) {
       if (apiType === 'google') {
         // Gemini格式不需要type字段
@@ -320,7 +320,7 @@ export class AIService {
       }
     }
     
-    // 添加附件内容
+    // 添加附件內容
     if (message.attachments && message.attachments.length > 0) {
       console.log(`[AIService] Processing ${message.attachments.length} attachments for ${apiType}`)
       
@@ -340,13 +340,13 @@ export class AIService {
           console.log(`[AIService] Gemini attachments:`, geminiAttachments.length)
           content.push(...geminiAttachments)
           
-          // 对于Gemini，检查是否有被过滤的附件
+          // 對於Gemini，檢查是否有被過濾的附件
           const originalCount = message.attachments.length
           const processedCount = geminiAttachments.length
           if (processedCount < originalCount) {
-            // 有附件被过滤，添加描述文本
+            // 有附件被過濾，添加描述文本
             const unsupportedAttachments = message.attachments.filter((att) => {
-              // 重新运行转换检查哪些被过滤了
+              // 重新運行轉換檢查哪些被過濾了
               return !this.isAttachmentSupportedByGemini(att)
             })
             
@@ -355,7 +355,7 @@ export class AIService {
                 `${att.name} (${att.type}, ${(att.size / 1024).toFixed(1)}KB)`
               ).join(', ')
               
-              const attachmentInfoText = `[用户上传了以下附件，但当前无法直接处理: ${attachmentDescriptions}。用户询问关于这些附件的问题。]`
+              const attachmentInfoText = `[用戶上傳了以下附件，但當前無法直接處理: ${attachmentDescriptions}。用戶詢問關於這些附件的問題。]`
               
               if (apiType === 'google') {
                 (content as any[]).push({ text: attachmentInfoText })
@@ -372,13 +372,13 @@ export class AIService {
     return content
   }
 
-  // 解析API错误并提供友好的用户反馈
+  // 解析API錯誤並提供友好的用戶反饋
   private parseAPIError(error: any, apiType: string): string {
     try {
       let errorMessage = ''
       let errorCode = ''
       
-      // 尝试解析不同格式的错误响应
+      // 嘗試解析不同格式的錯誤響應
       if (error.message && typeof error.message === 'string') {
         errorMessage = error.message
       } else if (error.error && error.error.message) {
@@ -390,124 +390,124 @@ export class AIService {
         errorMessage = JSON.stringify(error)
       }
       
-      // 检查是否是MIME类型不支持的错误
+      // 檢查是否是MIME類型不支持的錯誤
       const mimeTypePattern = /Unsupported MIME type: ([^(]+)/i
       const mimeMatch = errorMessage.match(mimeTypePattern)
       
       if (mimeMatch) {
         const unsupportedMimeType = mimeMatch[1].trim()
         
-        // 根据MIME类型提供具体的文件类型提示
+        // 根據MIME類型提供具體的文件類型提示
         let fileTypeHint = ''
         if (unsupportedMimeType.startsWith('application/vnd.openxmlformats-officedocument')) {
           if (unsupportedMimeType.includes('wordprocessingml')) {
-            fileTypeHint = 'Word文档(.docx)'
+            fileTypeHint = 'Word文檔(.docx)'
           } else if (unsupportedMimeType.includes('spreadsheetml')) {
             fileTypeHint = 'Excel表格(.xlsx)'
           } else if (unsupportedMimeType.includes('presentationml')) {
             fileTypeHint = 'PowerPoint演示文稿(.pptx)'
           } else {
-            fileTypeHint = 'Office文档'
+            fileTypeHint = 'Office文檔'
           }
         } else if (unsupportedMimeType.startsWith('application/msword')) {
-          fileTypeHint = 'Word文档(.doc)'
+          fileTypeHint = 'Word文檔(.doc)'
         } else if (unsupportedMimeType.startsWith('application/vnd.ms-excel')) {
           fileTypeHint = 'Excel表格(.xls)'
         } else if (unsupportedMimeType.startsWith('application/vnd.ms-powerpoint')) {
           fileTypeHint = 'PowerPoint演示文稿(.ppt)'
         } else if (unsupportedMimeType.startsWith('application/pdf')) {
-          fileTypeHint = 'PDF文档'
+          fileTypeHint = 'PDF文檔'
         } else if (unsupportedMimeType.startsWith('text/')) {
           fileTypeHint = '文本文件'
         } else if (unsupportedMimeType.startsWith('image/')) {
-          fileTypeHint = '图片文件'
+          fileTypeHint = '圖片文件'
         } else if (unsupportedMimeType.startsWith('audio/')) {
-          fileTypeHint = '音频文件'
+          fileTypeHint = '音頻文件'
         } else if (unsupportedMimeType.startsWith('video/')) {
-          fileTypeHint = '视频文件'
+          fileTypeHint = '視頻文件'
         } else {
-          fileTypeHint = '该文件'
+          fileTypeHint = '該文件'
         }
         
-        // 根据API类型提供建议
+        // 根據API類型提供建議
         let modelSuggestion = ''
         switch (apiType) {
           case 'openai':
-            modelSuggestion = '当前OpenAI模型主要支持图片格式。建议切换到支持更多文件类型的模型（如Gemini）'
+            modelSuggestion = '當前OpenAI模型主要支持圖片格式。建議切換到支持更多文件類型的模型（如Gemini）'
             break
           case 'anthropic':
-            modelSuggestion = '当前Claude模型主要支持图片格式。建议切换到支持更多文件类型的模型（如Gemini）'
+            modelSuggestion = '當前Claude模型主要支持圖片格式。建議切換到支持更多文件類型的模型（如Gemini）'
             break
           case 'google':
-            modelSuggestion = '当前Gemini模型不支持此文件格式。建议使用支持的格式（图片、PDF、Office文档等）'
+            modelSuggestion = '當前Gemini模型不支持此文件格式。建議使用支持的格式（圖片、PDF、Office文檔等）'
             break
           default:
-            modelSuggestion = '当前模型不支持此文件格式。建议切换到支持多模态的模型'
+            modelSuggestion = '當前模型不支持此文件格式。建議切換到支持多模態的模型'
         }
         
-        return `${fileTypeHint}格式不受当前模型支持。\n\n${modelSuggestion}，或移除附件后重新发送。`
+        return `${fileTypeHint}格式不受當前模型支持。\n\n${modelSuggestion}，或移除附件後重新發送。`
       }
       
-      // 检查是否是其他常见的附件相关错误
+      // 檢查是否是其他常見的附件相關錯誤
       if (errorMessage.toLowerCase().includes('multimodal') || 
           errorMessage.toLowerCase().includes('attachment') ||
           errorMessage.toLowerCase().includes('file') ||
           errorMessage.toLowerCase().includes('image')) {
-        return `当前模型不支持附件功能。请移除附件或切换到支持多模态的模型（如GPT-4 Vision、Claude 3或Gemini）。`
+        return `當前模型不支持附件功能。請移除附件或切換到支持多模態的模型（如GPT-4 Vision、Claude 3或Gemini）。`
       }
       
-      // 检查是否是模型不支持的错误
+      // 檢查是否是模型不支持的錯誤
       if (errorMessage.toLowerCase().includes('model') && 
           (errorMessage.toLowerCase().includes('not found') || 
            errorMessage.toLowerCase().includes('invalid'))) {
-        return `模型不可用或配置错误。请检查模型名称和API配置。`
+        return `模型不可用或配置錯誤。請檢查模型名稱和API配置。`
       }
       
-      // 检查是否是API密钥相关错误
+      // 檢查是否是API密鑰相關錯誤
       if (errorMessage.toLowerCase().includes('api key') || 
           errorMessage.toLowerCase().includes('unauthorized') ||
           errorMessage.toLowerCase().includes('authentication') ||
           errorCode === '401') {
-        return `API密钥无效或未授权。请检查您的API密钥配置。`
+        return `API密鑰無效或未授權。請檢查您的API密鑰配置。`
       }
       
-      // 检查是否是配额或限制错误
+      // 檢查是否是配額或限制錯誤
       if (errorMessage.toLowerCase().includes('quota') || 
           errorMessage.toLowerCase().includes('limit') ||
           errorMessage.toLowerCase().includes('rate') ||
           errorCode === '429') {
-        return `API调用频率过高或配额已用完。请稍后重试或检查您的API账户状态。`
+        return `API調用頻率過高或配額已用完。請稍後重試或檢查您的API賬戶狀態。`
       }
       
-      // 如果是网络相关错误
+      // 如果是網絡相關錯誤
       if (errorMessage.toLowerCase().includes('network') || 
           errorMessage.toLowerCase().includes('timeout') ||
           errorMessage.toLowerCase().includes('connection')) {
-        return `网络连接错误。请检查网络连接后重试。`
+        return `網絡連接錯誤。請檢查網絡連接後重試。`
       }
       
-      // 返回清理后的原始错误信息
-      return `API请求失败：${errorMessage}`
+      // 返回清理後的原始錯誤信息
+      return `API請求失敗：${errorMessage}`
       
     } catch (parseError) {
-      // 解析错误时返回通用错误信息
-      return `API请求失败，请检查网络连接和配置后重试。`
+      // 解析錯誤時返回通用錯誤信息
+      return `API請求失敗，請檢查網絡連接和配置後重試。`
     }
   }
 
-  // 提取系统消息文本的辅助方法
+  // 提取系統消息文本的輔助方法
   private extractSystemMessageText(messages: ChatMessage[]): string {
     const systemMsg = messages.find(m => m.role === 'system')
     if (!systemMsg) return ''
     if (typeof systemMsg.content === 'string') return systemMsg.content
     if (Array.isArray(systemMsg.content)) {
-      // 如果是MessageContent[]，提取所有文本内容
+      // 如果是MessageContent[]，提取所有文本內容
       return systemMsg.content.map(c => c.text || '').join(' ')
     }
     return ''
   }
 
-  // 检查附件是否被Gemini支持
+  // 檢查附件是否被Gemini支持
   private isAttachmentSupportedByGemini(att: MessageAttachment): boolean {
     if (att.type === 'image') {
       return true
@@ -523,7 +523,7 @@ export class AIService {
         'text/csv',
         'text/xml',
         'application/xml',
-        // Microsoft Office 文档
+        // Microsoft Office 文檔
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
         'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
@@ -560,7 +560,7 @@ export class AIService {
     return false
   }
 
-  // 检查模型是否支持多模态内容
+  // 檢查模型是否支持多模態內容
   private checkMultimodalSupport(modelId: string, apiType: string, attachments: MessageAttachment[]): { 
     supported: boolean; 
     message?: string 
@@ -571,61 +571,61 @@ export class AIService {
 
     const modelName = modelId.toLowerCase()
     
-    // 检查不同API类型的多模态支持
+    // 檢查不同API類型的多模態支持
     switch (apiType) {
       case 'openai':
-        // OpenAI模型支持检查
+        // OpenAI模型支持檢查
         if (modelName.includes('gpt-4') && (modelName.includes('vision') || modelName.includes('4o'))) {
-          // 只支持图片
+          // 只支持圖片
           const hasNonImage = attachments.some(att => att.type !== 'image')
           if (hasNonImage) {
             return {
               supported: false,
-              message: `当前模型 ${modelId} 仅支持图片附件，不支持文档、音频或视频。请移除非图片附件或切换到支持多模态的模型（如 Gemini）。`
+              message: `當前模型 ${modelId} 僅支持圖片附件，不支持文檔、音頻或視頻。請移除非圖片附件或切換到支持多模態的模型（如 Gemini）。`
             }
           }
           return { supported: true }
         } else {
           return {
             supported: false,
-            message: `当前模型 ${modelId} 不支持多模态输入。请移除附件或切换到支持视觉的模型（如 GPT-4 Vision、GPT-4o 或 Gemini）。`
+            message: `當前模型 ${modelId} 不支持多模態輸入。請移除附件或切換到支持視覺的模型（如 GPT-4 Vision、GPT-4o 或 Gemini）。`
           }
         }
         
       case 'anthropic':
-        // Claude模型支持检查
+        // Claude模型支持檢查
         if (modelName.includes('claude') && modelName.includes('3')) {
-          // 只支持图片
+          // 只支持圖片
           const hasNonImage = attachments.some(att => att.type !== 'image')
           if (hasNonImage) {
             return {
               supported: false,
-              message: `当前模型 ${modelId} 仅支持图片附件，不支持文档、音频或视频。请移除非图片附件或切换到支持多模态的模型（如 Gemini）。`
+              message: `當前模型 ${modelId} 僅支持圖片附件，不支持文檔、音頻或視頻。請移除非圖片附件或切換到支持多模態的模型（如 Gemini）。`
             }
           }
           return { supported: true }
         } else {
           return {
             supported: false,
-            message: `当前模型 ${modelId} 不支持多模态输入。请移除附件或切换到支持视觉的模型（如 Claude 3 或 Gemini）。`
+            message: `當前模型 ${modelId} 不支持多模態輸入。請移除附件或切換到支持視覺的模型（如 Claude 3 或 Gemini）。`
           }
         }
         
       case 'google':
-        // Gemini模型支持检查
+        // Gemini模型支持檢查
         if (modelName.includes('gemini') && (modelName.includes('1.5') || modelName.includes('2.') || modelName.includes('flash') || modelName.includes('pro'))) {
-          return { supported: true } // Gemini支持最全面的多模态
+          return { supported: true } // Gemini支持最全面的多模態
         } else {
           return {
             supported: false,
-            message: `当前模型 ${modelId} 不支持多模态输入。请移除附件或切换到支持多模态的 Gemini 模型（如 gemini-1.5-pro、gemini-1.5-flash）。`
+            message: `當前模型 ${modelId} 不支持多模態輸入。請移除附件或切換到支持多模態的 Gemini 模型（如 gemini-1.5-pro、gemini-1.5-flash）。`
           }
         }
         
       default:
         return {
           supported: false,
-          message: `当前API类型 ${apiType} 的多模态支持未知。请移除附件或切换到已知支持多模态的模型。`
+          message: `當前API類型 ${apiType} 的多模態支持未知。請移除附件或切換到已知支持多模態的模型。`
         }
     }
   }
@@ -633,29 +633,29 @@ export class AIService {
     return !!(message.attachments && message.attachments.length > 0)
   }
 
-  // 调用AI API
+  // 調用AI API
   async callAI(messages: ChatMessage[], provider: ProviderConfig, modelId: string, stream: boolean = false): Promise<string> {
-    // 获取模型配置以确定API类型（移到try外部以便catch块访问）
+    // 獲取模型配置以確定API類型（移到try外部以便catch塊訪問）
     const model = provider.models.find(m => m.id === modelId)
     const apiType = model?.apiType || provider.type
     
     try {
-      // 检查多模态支持
+      // 檢查多模態支持
       const allAttachments = messages.flatMap(msg => msg.attachments || [])
       const supportCheck = this.checkMultimodalSupport(modelId, apiType, allAttachments)
       
       if (!supportCheck.supported) {
         console.warn('[AIService] Multimodal not supported:', supportCheck.message)
-        // 返回友好的提示信息而不是抛出错误
-        return supportCheck.message || '当前模型不支持附件，请移除附件或切换模型。'
+        // 返回友好的提示信息而不是拋出錯誤
+        return supportCheck.message || '當前模型不支持附件，請移除附件或切換模型。'
       }
       
       let result: string
       if (stream) {
-        // 流式调用
+        // 流式調用
         result = await this.callAIStream(messages, provider, modelId, apiType)
       } else {
-        // 非流式调用
+        // 非流式調用
         switch (apiType) {
           case 'openai':
             result = await this.callOpenAIAPI(messages, provider, modelId)
@@ -673,13 +673,13 @@ export class AIService {
       
       return result
     } catch (error) {
-      // 解析错误并提供友好的反馈
+      // 解析錯誤並提供友好的反饋
       const friendlyErrorMessage = this.parseAPIError(error, apiType)
       throw new Error(friendlyErrorMessage)
     }
   }
 
-  // 流式AI API调用
+  // 流式AI API調用
   async callAIStream(messages: ChatMessage[], provider: ProviderConfig, modelId: string, apiType: string): Promise<string> {
     try {
       switch (apiType) {
@@ -693,14 +693,14 @@ export class AIService {
           return await this.callOpenAIAPIStream(messages, provider, modelId)
       }
     } catch (error) {
-      // 检查是否是不支持的MIME类型错误，如果是，直接抛出友好错误，不尝试降级
+      // 檢查是否是不支持的MIME類型錯誤，如果是，直接拋出友好錯誤，不嘗試降級
       const errorMessage = (error as any)?.message || (error as any)?.error?.message || String(error)
       if (errorMessage.toLowerCase().includes('unsupported mime type')) {
         const friendlyErrorMessage = this.parseAPIError(error, apiType)
         throw new Error(friendlyErrorMessage)
       }
       
-      // 其他错误尝试降级到非流式
+      // 其他錯誤嘗試降級到非流式
       try {
         switch (apiType) {
           case 'openai':
@@ -713,37 +713,37 @@ export class AIService {
             return await this.callOpenAIAPI(messages, provider, modelId)
         }
       } catch (fallbackError) {
-        // 降级失败，解析并抛出友好的错误信息
+        // 降級失敗，解析並拋出友好的錯誤信息
         const friendlyErrorMessage = this.parseAPIError(fallbackError, apiType)
         throw new Error(friendlyErrorMessage)
       }
     }
   }
 
-  // OpenAI API调用（也适用于兼容OpenAI的API）
+  // OpenAI API調用（也適用於兼容OpenAI的API）
   private async callOpenAIAPI(messages: ChatMessage[], provider: ProviderConfig, modelId: string): Promise<string> {
-    // 构建OpenAI API URL - 智能处理基础URL和完整URL
+    // 構建OpenAI API URL - 智能處理基礎URL和完整URL
     if (!provider.baseUrl) {
       throw new Error('API URL 未配置')
     }
     let apiUrl = provider.baseUrl.trim()
     
     if (apiUrl.includes('/chat/completions')) {
-      // 已经是完整URL，直接使用
+      // 已經是完整URL，直接使用
       // 例如: https://xxx/v1/chat/completions
     } else if (apiUrl.includes('/v1')) {
-      // 包含v1但没有chat/completions，拼接chat/completions
+      // 包含v1但沒有chat/completions，拼接chat/completions
       // 例如: https://xxx/v1 -> https://xxx/v1/chat/completions
       apiUrl = apiUrl.replace(/\/+$/, '') + '/chat/completions'
     } else {
-      // 基础URL，需要拼接完整路径
+      // 基礎URL，需要拼接完整路徑
       // 例如: https://xxx -> https://xxx/v1/chat/completions
       apiUrl = apiUrl.replace(/\/+$/, '') + '/v1/chat/completions'
     }
     
-    // 对于思考模型（如gpt-5-high）使用更长的超时时间
+    // 對於思考模型（如gpt-5-high）使用更長的超時時間
     const isThinkingModel = modelId.includes('gpt-5') || modelId.includes('o1') || modelId.includes('thinking')
-    const timeoutMs = isThinkingModel ? 600000 : 300000 // 思考模型10分钟，普通模型5分钟
+    const timeoutMs = isThinkingModel ? 600000 : 300000 // 思考模型10分鐘，普通模型5分鐘
     
     const response = await this.fetchWithTimeout(apiUrl, {
       method: 'POST',
@@ -754,7 +754,7 @@ export class AIService {
       body: JSON.stringify({
         model: modelId,
         messages: messages.map(msg => {
-          // 检查是否有多模态内容
+          // 檢查是否有多模態內容
           if (this.hasMultimodalContent(msg)) {
             const multimodalContent = this.convertToMultimodalContent(msg, 'openai')
             return {
@@ -775,7 +775,7 @@ export class AIService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      // 抛出包含完整错误信息的错误对象，供上层parseAPIError解析
+      // 拋出包含完整錯誤信息的錯誤對象，供上層parseAPIError解析
       const error = new Error(`OpenAI API error: ${response.status} ${response.statusText}`)
       ;(error as any).error = errorData
       ;(error as any).status = response.status
@@ -784,7 +784,7 @@ export class AIService {
 
     const data = await response.json()
     
-    // 支持多种API响应格式的内容提取
+    // 支持多種API響應格式的內容提取
     let result: string | undefined
     
     if (data.choices && data.choices[0]?.message?.content) {
@@ -793,7 +793,7 @@ export class AIService {
     } else if (data.candidates && data.candidates[0]?.content?.parts) {
       // Gemini 格式: {candidates: [{content: {parts: [{text: "text"}]}}]}
       const parts = data.candidates[0].content.parts
-      // 查找包含text的部分（过滤掉thought等）
+      // 查找包含text的部分（過濾掉thought等）
       for (const part of parts) {
         if (part.text && !part.thought) {
           result = part.text
@@ -801,45 +801,45 @@ export class AIService {
         }
       }
     } else if (data.content && typeof data.content === 'string') {
-      // 直接返回内容格式
+      // 直接返回內容格式
       result = data.content
     } else if (data.text && typeof data.text === 'string') {
-      // 简单文本格式
+      // 簡單文本格式
       result = data.text
     }
     
     if (!result || result.trim() === '') {
-      throw new Error('API返回空内容或无法解析响应格式')
+      throw new Error('API返回空內容或無法解析響應格式')
     }
     
-    // 清理响应内容中的评估标签等
+    // 清理響應內容中的評估標籤等
     result = this.cleanResponse(result)
     
-    // 清理think标签内容
+    // 清理think標籤內容
     result = this.cleanThinkTagsFromFullText(result)
     
     return result
   }
 
-  // Anthropic API调用
+  // Anthropic API調用
   private async callAnthropicAPI(messages: ChatMessage[], provider: ProviderConfig, modelId: string): Promise<string> {
-    // 分离系统消息和对话消息
+    // 分離系統消息和對話消息
     const systemMessage = this.extractSystemMessageText(messages)
     const conversationMessages = messages.filter(m => m.role !== 'system')
 
-    // 构建Anthropic API URL - 智能处理基础URL和完整URL
+    // 構建Anthropic API URL - 智能處理基礎URL和完整URL
     if (!provider.baseUrl) {
       throw new Error('API URL 未配置')
     }
     let apiUrl = provider.baseUrl.trim()
     if (!apiUrl.includes('/v1/messages')) {
-      // 如果是基础URL，需要拼接路径
+      // 如果是基礎URL，需要拼接路徑
       apiUrl = apiUrl.replace(/\/+$/, '') + '/v1/messages'
     }
 
-    // 对于思考模型使用更长的超时时间
+    // 對於思考模型使用更長的超時時間
     const isThinkingModel = modelId.includes('claude-3') || modelId.includes('thinking') || modelId.includes('sonnet')
-    const timeoutMs = isThinkingModel ? 600000 : 300000 // 思考模型10分钟，普通模型5分钟
+    const timeoutMs = isThinkingModel ? 600000 : 300000 // 思考模型10分鐘，普通模型5分鐘
 
     const response = await this.fetchWithTimeout(apiUrl, {
       method: 'POST',
@@ -864,7 +864,7 @@ export class AIService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      // 抛出包含完整错误信息的错误对象，供上层parseAPIError解析
+      // 拋出包含完整錯誤信息的錯誤對象，供上層parseAPIError解析
       const error = new Error(`Anthropic API error: ${response.status} ${response.statusText}`)
       ;(error as any).error = errorData
       ;(error as any).status = response.status
@@ -875,18 +875,18 @@ export class AIService {
     const result = data.content[0]?.text
     
     if (!result || result.trim() === '') {
-      throw new Error('API返回空内容')
+      throw new Error('API返回空內容')
     }
     
-    // 清理think标签内容
+    // 清理think標籤內容
     const cleanedResult = this.cleanThinkTagsFromFullText(result)
     
     return cleanedResult
   }
 
-  // Google Gemini API调用
+  // Google Gemini API調用
   private async callGoogleAPI(messages: ChatMessage[], provider: ProviderConfig, modelId: string): Promise<string> {
-    // Google Gemini API格式转换
+    // Google Gemini API格式轉換
     const systemMessage = this.extractSystemMessageText(messages)
     const conversationMessages = messages.filter(m => m.role !== 'system')
 
@@ -909,18 +909,18 @@ export class AIService {
       }
     }
 
-    // 如果有系统消息，添加到第一个用户消息前
+    // 如果有系統消息，添加到第一個用戶消息前
     if (systemMessage && contents.length > 0) {
-      // 找到第一个用户消息
+      // 找到第一個用戶消息
       const firstUserContent = contents.find(content => content.role === 'user')
       if (firstUserContent && firstUserContent.parts) {
         // 查找文本部分
         const textPart = firstUserContent.parts.find(part => part.text)
         if (textPart) {
-          // 将系统消息添加到现有文本前
+          // 將系統消息添加到現有文本前
           textPart.text = systemMessage + '\n\n' + textPart.text
         } else {
-          // 如果没有文本部分，添加一个新的文本部分到开头
+          // 如果沒有文本部分，添加一個新的文本部分到開頭
           firstUserContent.parts.unshift({ text: systemMessage } as any)
         }
       }
@@ -937,33 +937,33 @@ export class AIService {
       modelId: modelId
     })
 
-    // 构建Google Gemini API URL - 总是拼接模型路径
+    // 構建Google Gemini API URL - 總是拼接模型路徑
     if (!provider.baseUrl) {
       throw new Error('API URL 未配置')
     }
     let apiUrl = provider.baseUrl.trim()
-    // 确保以/v1beta结尾，然后拼接模型路径
+    // 確保以/v1beta結尾，然後拼接模型路徑
     if (!apiUrl.endsWith('/v1beta')) {
       // 如果是完整的generateContent URL，提取baseURL部分
       if (apiUrl.includes('/models/')) {
         apiUrl = apiUrl.split('/models/')[0]
       }
-      // 确保以/v1beta结尾
+      // 確保以/v1beta結尾
       if (!apiUrl.endsWith('/v1beta')) {
         apiUrl = apiUrl.replace(/\/+$/, '') + '/v1beta'
       }
     }
-    // 拼接模型特定路径
+    // 拼接模型特定路徑
     apiUrl = `${apiUrl}/models/${modelId}:generateContent`
     
-    // 添加API key参数
+    // 添加API key參數
     const url = new URL(apiUrl)
     url.searchParams.set('key', provider.apiKey)
     
-    // 对于Google模型使用较长的超时时间
-    const timeoutMs = 300000 // 5分钟
+    // 對於Google模型使用較長的超時時間
+    const timeoutMs = 300000 // 5分鐘
     
-    const response = await this.fetchWithTimeout(url.toString(), {
+    const response = await this.fetchWithTimeout(url.function toString() { [native code] }(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -973,7 +973,7 @@ export class AIService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      // 抛出包含完整错误信息的错误对象，供上层parseAPIError解析
+      // 拋出包含完整錯誤信息的錯誤對象，供上層parseAPIError解析
       const error = new Error(`Google Gemini API error: ${response.status} ${response.statusText}`)
       ;(error as any).error = errorData
       ;(error as any).status = response.status
@@ -982,13 +982,13 @@ export class AIService {
 
     const data = await response.json()
     
-    // 在parts数组中找到非思考内容的文本
+    // 在parts數組中找到非思考內容的文本
     const candidate = data.candidates?.[0]
     if (!candidate?.content?.parts) {
-      throw new Error('API返回数据结构异常')
+      throw new Error('API返回數據結構異常')
     }
     
-    // 查找实际的回答文本（排除thought内容）
+    // 查找實際的回答文本（排除thought內容）
     let result = ''
     for (const part of candidate.content.parts) {
       if (part.text && !part.thought) {
@@ -998,39 +998,39 @@ export class AIService {
     }
     
     if (!result || result.trim() === '') {
-      throw new Error('API返回空内容')
+      throw new Error('API返回空內容')
     }
     
-    // 清理think标签内容
+    // 清理think標籤內容
     const cleanedResult = this.cleanThinkTagsFromFullText(result)
     
     return cleanedResult
   }
 
-  // OpenAI流式API调用
+  // OpenAI流式API調用
   private async callOpenAIAPIStream(messages: ChatMessage[], provider: ProviderConfig, modelId: string): Promise<string> {
-    // 构建OpenAI API URL - 智能处理基础URL和完整URL
+    // 構建OpenAI API URL - 智能處理基礎URL和完整URL
     if (!provider.baseUrl) {
       throw new Error('API URL 未配置')
     }
     let apiUrl = provider.baseUrl.trim()
     
     if (apiUrl.includes('/chat/completions')) {
-      // 已经是完整URL，直接使用
+      // 已經是完整URL，直接使用
       // 例如: https://xxx/v1/chat/completions
     } else if (apiUrl.includes('/v1')) {
-      // 包含v1但没有chat/completions，拼接chat/completions
+      // 包含v1但沒有chat/completions，拼接chat/completions
       // 例如: https://xxx/v1 -> https://xxx/v1/chat/completions
       apiUrl = apiUrl.replace(/\/+$/, '') + '/chat/completions'
     } else {
-      // 基础URL，需要拼接完整路径
+      // 基礎URL，需要拼接完整路徑
       // 例如: https://xxx -> https://xxx/v1/chat/completions
       apiUrl = apiUrl.replace(/\/+$/, '') + '/v1/chat/completions'
     }
     
-    // 对于思考模型（如gpt-5-high）使用更长的超时时间
+    // 對於思考模型（如gpt-5-high）使用更長的超時時間
     const isThinkingModel = modelId.includes('gpt-5') || modelId.includes('o1') || modelId.includes('thinking')
-    const timeoutMs = isThinkingModel ? 600000 : 300000 // 思考模型10分钟，普通模型5分钟
+    const timeoutMs = isThinkingModel ? 600000 : 300000 // 思考模型10分鐘，普通模型5分鐘
     
     const response = await this.fetchWithTimeout(apiUrl, {
       method: 'POST',
@@ -1041,7 +1041,7 @@ export class AIService {
       body: JSON.stringify({
         model: modelId,
         messages: messages.map(msg => {
-          // 检查是否有多模态内容
+          // 檢查是否有多模態內容
           if (this.hasMultimodalContent(msg)) {
             const multimodalContent = this.convertToMultimodalContent(msg, 'openai')
             return {
@@ -1063,7 +1063,7 @@ export class AIService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      // 抛出包含完整错误信息的错误对象，供上层parseAPIError解析
+      // 拋出包含完整錯誤信息的錯誤對象，供上層parseAPIError解析
       const error = new Error(`OpenAI API error: ${response.status} ${response.statusText}`)
       ;(error as any).error = errorData
       ;(error as any).status = response.status
@@ -1078,7 +1078,7 @@ export class AIService {
     let result = ''
     const decoder = new TextDecoder()
     
-    // 重置think标签处理状态
+    // 重置think標籤處理狀態
     this.resetThinkState()
 
     try {
@@ -1098,7 +1098,7 @@ export class AIService {
               const parsed = JSON.parse(data)
               let content: string | undefined
               
-              // 支持多种流式响应格式
+              // 支持多種流式響應格式
               if (parsed.choices?.[0]?.delta?.content) {
                 // OpenAI 流式格式
                 content = parsed.choices[0].delta.content
@@ -1112,7 +1112,7 @@ export class AIService {
                   }
                 }
               } else if (parsed.delta?.text) {
-                // 简化流式格式
+                // 簡化流式格式
                 content = parsed.delta.text
               } else if (parsed.text) {
                 // 直接文本格式
@@ -1120,7 +1120,7 @@ export class AIService {
               }
               
               if (content) {
-                // 清理<think></think>标签内容
+                // 清理<think></think>標籤內容
                 const filteredContent = this.filterThinkTags(content)
                 if (filteredContent) {
                   result += filteredContent
@@ -1130,7 +1130,7 @@ export class AIService {
                 }
               }
             } catch (e) {
-              // 忽略解析错误
+              // 忽略解析錯誤
             }
           }
         }
@@ -1140,30 +1140,30 @@ export class AIService {
     }
 
     if (!result || result.trim() === '') {
-      throw new Error('API返回空内容')
+      throw new Error('API返回空內容')
     }
 
-    // 清理流式响应内容中的评估标签等
+    // 清理流式響應內容中的評估標籤等
     result = this.cleanResponse(result)
     
-    // 清理think标签内容
+    // 清理think標籤內容
     result = this.cleanThinkTagsFromFullText(result)
 
     return result
   }
 
-  // Anthropic流式API调用
+  // Anthropic流式API調用
   private async callAnthropicAPIStream(messages: ChatMessage[], provider: ProviderConfig, modelId: string): Promise<string> {
     const systemMessage = this.extractSystemMessageText(messages)
     const conversationMessages = messages.filter(m => m.role !== 'system')
 
-    // 构建Anthropic API URL - 智能处理基础URL和完整URL
+    // 構建Anthropic API URL - 智能處理基礎URL和完整URL
     if (!provider.baseUrl) {
       throw new Error('API URL 未配置')
     }
     let apiUrl = provider.baseUrl.trim()
     if (!apiUrl.includes('/v1/messages')) {
-      // 如果是基础URL，需要拼接路径
+      // 如果是基礎URL，需要拼接路徑
       apiUrl = apiUrl.replace(/\/+$/, '') + '/v1/messages'
     }
 
@@ -1191,7 +1191,7 @@ export class AIService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      // 抛出包含完整错误信息的错误对象，供上层parseAPIError解析
+      // 拋出包含完整錯誤信息的錯誤對象，供上層parseAPIError解析
       const error = new Error(`Anthropic API error: ${response.status} ${response.statusText}`)
       ;(error as any).error = errorData
       ;(error as any).status = response.status
@@ -1206,7 +1206,7 @@ export class AIService {
     let result = ''
     const decoder = new TextDecoder()
     
-    // 重置think标签处理状态
+    // 重置think標籤處理狀態
     this.resetThinkState()
 
     try {
@@ -1227,7 +1227,7 @@ export class AIService {
               if (parsed.type === 'content_block_delta') {
                 const content = parsed.delta?.text
                 if (content) {
-                  // 清理<think></think>标签内容
+                  // 清理<think></think>標籤內容
                   const filteredContent = this.filterThinkTags(content)
                   if (filteredContent) {
                     result += filteredContent
@@ -1238,7 +1238,7 @@ export class AIService {
                 }
               }
             } catch (e) {
-              // 忽略解析错误
+              // 忽略解析錯誤
             }
           }
         }
@@ -1248,18 +1248,18 @@ export class AIService {
     }
 
     if (!result || result.trim() === '') {
-      throw new Error('API返回空内容')
+      throw new Error('API返回空內容')
     }
 
-    // 清理think标签内容
+    // 清理think標籤內容
     result = this.cleanThinkTagsFromFullText(result)
 
     return result
   }
 
-  // Google Gemini流式API调用
+  // Google Gemini流式API調用
   private async callGoogleAPIStream(messages: ChatMessage[], provider: ProviderConfig, modelId: string): Promise<string> {
-    // Google Gemini API格式转换
+    // Google Gemini API格式轉換
     const systemMessage = this.extractSystemMessageText(messages)
     const conversationMessages = messages.filter(m => m.role !== 'system')
 
@@ -1282,36 +1282,36 @@ export class AIService {
       }
     }
 
-    // 如果有系统消息，添加到第一个用户消息前
+    // 如果有系統消息，添加到第一個用戶消息前
     if (systemMessage && contents.length > 0) {
       contents[0].parts[0].text = systemMessage + '\n\n' + contents[0].parts[0].text
     }
 
-    // 构建Google Gemini API URL - 总是拼接模型路径
+    // 構建Google Gemini API URL - 總是拼接模型路徑
     if (!provider.baseUrl) {
       throw new Error('API URL 未配置')
     }
     let apiUrl = provider.baseUrl.trim()
-    // 确保以/v1beta结尾，然后拼接模型路径
+    // 確保以/v1beta結尾，然後拼接模型路徑
     if (!apiUrl.endsWith('/v1beta')) {
       // 如果是完整的generateContent URL，提取baseURL部分
       if (apiUrl.includes('/models/')) {
         apiUrl = apiUrl.split('/models/')[0]
       }
-      // 确保以/v1beta结尾
+      // 確保以/v1beta結尾
       if (!apiUrl.endsWith('/v1beta')) {
         apiUrl = apiUrl.replace(/\/+$/, '') + '/v1beta'
       }
     }
-    // 拼接模型特定路径，添加stream参数
+    // 拼接模型特定路徑，添加stream參數
     apiUrl = `${apiUrl}/models/${modelId}:streamGenerateContent`
     
-    // 添加API key和SSE格式参数
+    // 添加API key和SSE格式參數
     const url = new URL(apiUrl)
     url.searchParams.set('key', provider.apiKey)
     url.searchParams.set('alt', 'sse')  // Gemini API返回SSE格式
     
-    const response = await this.fetchWithTimeout(url.toString(), {
+    const response = await this.fetchWithTimeout(url.function toString() { [native code] }(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -1321,7 +1321,7 @@ export class AIService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      // 抛出包含完整错误信息的错误对象，供上层parseAPIError解析
+      // 拋出包含完整錯誤信息的錯誤對象，供上層parseAPIError解析
       const error = new Error(`Google Gemini API error: ${response.status} ${response.statusText}`)
       ;(error as any).error = errorData
       ;(error as any).status = response.status
@@ -1329,14 +1329,14 @@ export class AIService {
     }
 
     if (!response.body) {
-      throw new Error('响应体为空')
+      throw new Error('響應體爲空')
     }
 
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     let result = ''
     
-    // 重置think标签处理状态
+    // 重置think標籤處理狀態
     this.resetThinkState()
 
     try {
@@ -1358,11 +1358,11 @@ export class AIService {
               if (candidate?.content?.parts) {
                 for (const part of candidate.content.parts) {
                   if (part.text && !part.thought) {
-                    // 清理<think></think>标签内容
+                    // 清理<think></think>標籤內容
                     const filteredContent = this.filterThinkTags(part.text)
                     if (filteredContent) {
                       result += filteredContent
-                      // 调用流式更新回调
+                      // 調用流式更新回調
                       if (this.onStreamUpdate) {
                         this.onStreamUpdate(filteredContent)
                       }
@@ -1371,7 +1371,7 @@ export class AIService {
                 }
               }
             } catch (parseError) {
-              // 忽略解析错误，继续处理下一行
+              // 忽略解析錯誤，繼續處理下一行
               continue
             }
           }
@@ -1382,37 +1382,37 @@ export class AIService {
     }
 
     if (!result || result.trim() === '') {
-      throw new Error('API返回空内容')
+      throw new Error('API返回空內容')
     }
 
-    // 清理流式响应内容中的评估标签等
+    // 清理流式響應內容中的評估標籤等
     result = this.cleanResponse(result)
     
-    // 清理think标签内容
+    // 清理think標籤內容
     result = this.cleanThinkTagsFromFullText(result)
 
     return result
   }
 
-  // 清理AI响应中的评估标签
+  // 清理AI響應中的評估標籤
   private cleanResponse(response: string): string {
     try {
-      // 移除完整的评估标签及其内容
+      // 移除完整的評估標籤及其內容
       let cleaned = response.replace(/<ASSESSMENT>[\s\S]*?<\/ASSESSMENT>/gi, '').trim()
       
-      // 处理流式过程中不完整的评估标签
-      // 如果发现开始标签但没有结束标签，截断到开始标签之前
+      // 處理流式過程中不完整的評估標籤
+      // 如果發現開始標籤但沒有結束標籤，截斷到開始標籤之前
       const assessmentStart = cleaned.indexOf('<ASSESSMENT>')
       if (assessmentStart !== -1) {
         cleaned = cleaned.substring(0, assessmentStart).trim()
       }
       
-      // 处理其他可能的不完整标签模式
+      // 處理其他可能的不完整標籤模式
       const patterns = [
-        /<ASSE[^>]*$/i,     // 不完整的开始标签
-        /<\/ASSE[^>]*$/i,   // 不完整的结束标签
-        /\n\n<ASSE/i,       // 换行后的开始标签
-        /CONTEXT:/i,        // 评估内容的关键词
+        /<ASSE[^>]*$/i,     // 不完整的開始標籤
+        /<\/ASSE[^>]*$/i,   // 不完整的結束標籤
+        /\n\n<ASSE/i,       // 換行後的開始標籤
+        /CONTEXT:/i,        // 評估內容的關鍵詞
         /TASK:/i,
         /FORMAT:/i,
         /QUALITY:/i,
@@ -1431,11 +1431,11 @@ export class AIService {
       
       return cleaned
     } catch (error) {
-      return response // 清理失败时返回原内容
+      return response // 清理失敗時返回原內容
     }
   }
 
-  // 设置流式更新回调
+  // 設置流式更新回調
   private onStreamUpdate?: (content: string) => void
 
   setStreamUpdateCallback(callback: (content: string) => void) {
@@ -1446,13 +1446,13 @@ export class AIService {
     this.onStreamUpdate = undefined
   }
 
-  // 获取可用模型列表
+  // 獲取可用模型列表
   async getAvailableModels(provider: ProviderConfig, preferredApiType?: 'openai' | 'anthropic' | 'google'): Promise<string[]> {
     try {
-      // 确定API类型 - 优先使用传入的API类型
+      // 確定API類型 - 優先使用傳入的API類型
       const apiType = preferredApiType || provider.type
       
-      // 根据API类型调用不同方法
+      // 根據API類型調用不同方法
       switch (apiType) {
         case 'openai':
           return await this.getOpenAIModels(provider)
@@ -1461,7 +1461,7 @@ export class AIService {
         case 'google':
           return await this.getGeminiModels(provider)
         case 'custom':
-          // 自定义类型需要进一步判断实际API类型
+          // 自定義類型需要進一步判斷實際API類型
           return await this.getCustomProviderModels(provider, preferredApiType)
         default:
           return await this.getOpenAIModels(provider)
@@ -1471,7 +1471,7 @@ export class AIService {
     }
   }
 
-  // OpenAI模型列表获取
+  // OpenAI模型列表獲取
   private async getOpenAIModels(provider: ProviderConfig): Promise<string[]> {
     if (!provider.baseUrl) {
       throw new Error('API URL 未配置')
@@ -1499,21 +1499,21 @@ export class AIService {
         .sort()
     }
     
-    throw new Error('OpenAI API返回的模型列表格式不正确')
+    throw new Error('OpenAI API返回的模型列表格式不正確')
   }
 
-  // Gemini模型列表获取
+  // Gemini模型列表獲取
   private async getGeminiModels(provider: ProviderConfig): Promise<string[]> {
     if (!provider.baseUrl) {
       throw new Error('API URL 未配置')
     }
     const apiUrl = this.buildGeminiModelsUrl(provider.baseUrl)
     
-    // Gemini使用URL参数认证
+    // Gemini使用URL參數認證
     const url = new URL(apiUrl)
     url.searchParams.set('key', provider.apiKey)
     
-    const response = await this.fetchWithTimeout(url.toString(), {
+    const response = await this.fetchWithTimeout(url.function toString() { [native code] }(), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -1530,7 +1530,7 @@ export class AIService {
       return data.models
         .map((model: any) => {
           if (model.name && typeof model.name === 'string') {
-            return model.name.replace(/^models\//, '') // 移除 "models/" 前缀
+            return model.name.replace(/^models\//, '') // 移除 "models/" 前綴
           }
           return model.id || model.name
         })
@@ -1538,12 +1538,12 @@ export class AIService {
         .sort()
     }
     
-    throw new Error('Gemini API返回的模型列表格式不正确')
+    throw new Error('Gemini API返回的模型列表格式不正確')
   }
 
-  // Anthropic模型列表获取
+  // Anthropic模型列表獲取
   private async getAnthropicModels(): Promise<string[]> {
-    // Anthropic不提供公开的模型列表API，返回预定义列表
+    // Anthropic不提供公開的模型列表API，返回預定義列表
     return [
       'claude-3-5-sonnet-20241022',
       'claude-3-5-haiku-20241022',
@@ -1553,9 +1553,9 @@ export class AIService {
     ].sort()
   }
 
-  // 自定义提供商模型列表获取
+  // 自定義提供商模型列表獲取
   private async getCustomProviderModels(provider: ProviderConfig, preferredApiType?: 'openai' | 'anthropic' | 'google'): Promise<string[]> {
-    // 如果用户已选择API类型，直接使用该类型
+    // 如果用戶已選擇API類型，直接使用該類型
     if (preferredApiType) {
       switch (preferredApiType) {
         case 'openai':
@@ -1565,15 +1565,15 @@ export class AIService {
         case 'google':
           return await this.getGeminiModels(provider)
         default:
-          // 继续执行下面的智能判断逻辑
+          // 繼續執行下面的智能判斷邏輯
           break
       }
     }
     
-    // 智能判断API类型，避免不必要的重复调用
+    // 智能判斷API類型，避免不必要的重複調用
     const baseUrl = provider.baseUrl?.toLowerCase() || ''
     
-    // 如果URL包含Gemini相关标识，直接使用Gemini API
+    // 如果URL包含Gemini相關標識，直接使用Gemini API
     if (baseUrl.includes('googleapis.com') || 
         baseUrl.includes('generativelanguage') ||
         baseUrl.includes('/v1beta') ||
@@ -1581,47 +1581,47 @@ export class AIService {
       try {
         return await this.getGeminiModels(provider)
       } catch (error) {
-        // Gemini API失败，不再尝试其他格式，直接抛出错误
-        throw new Error(`Gemini API获取模型列表失败: ${error instanceof Error ? error.message : String(error)}`)
+        // Gemini API失敗，不再嘗試其他格式，直接拋出錯誤
+        throw new Error(`Gemini API獲取模型列表失敗: ${error instanceof Error ? error.message : String(error)}`)
       }
     }
     
-    // 如果URL包含Anthropic相关标识，直接返回预定义列表
+    // 如果URL包含Anthropic相關標識，直接返回預定義列表
     if (baseUrl.includes('anthropic.com') || baseUrl.includes('claude')) {
       return await this.getAnthropicModels()
     }
     
-    // 对于其他自定义提供商，尝试多种格式
+    // 對於其他自定義提供商，嘗試多種格式
     try {
-      // 首先尝试OpenAI格式
+      // 首先嚐試OpenAI格式
       return await this.getOpenAIModels(provider)
     } catch (error1) {
       try {
-        // 然后尝试Gemini格式（仅当URL不明确时）
+        // 然後嘗試Gemini格式（僅當URL不明確時）
         return await this.getGeminiModels(provider)
       } catch (error2) {
-        // 最后使用通用解析逻辑
+        // 最後使用通用解析邏輯
         return await this.getModelsWithGenericParsing(provider)
       }
     }
   }
 
-  // 通用模型列表解析（保持向后兼容）
+  // 通用模型列表解析（保持向後兼容）
   private async getModelsWithGenericParsing(provider: ProviderConfig): Promise<string[]> {
     try {
-      // 构建模型列表API URL
+      // 構建模型列表API URL
       if (!provider.baseUrl) {
         throw new Error('API URL 未配置')
       }
       let apiUrl = provider.baseUrl.trim()
       
       if (apiUrl.includes('/models')) {
-        // 已经是模型列表URL，直接使用
+        // 已經是模型列表URL，直接使用
       } else if (apiUrl.includes('/v1')) {
-        // 包含v1但没有models，拼接models
+        // 包含v1但沒有models，拼接models
         apiUrl = apiUrl.replace(/\/+$/, '') + '/models'
       } else {
-        // 基础URL，需要拼接完整路径
+        // 基礎URL，需要拼接完整路徑
         apiUrl = apiUrl.replace(/\/+$/, '') + '/v1/models'
       }
       
@@ -1639,7 +1639,7 @@ export class AIService {
 
       const data = await response.json()
       
-      // 提取模型ID列表 - 支持多种API格式
+      // 提取模型ID列表 - 支持多種API格式
       let models: any[] = []
       
       if (data.data && Array.isArray(data.data)) {
@@ -1651,15 +1651,15 @@ export class AIService {
         // Gemini 格式: {models: [{name: "models/model-name"}, ...]}
         models = data.models
           .map((model: any) => {
-            // 提取模型名称，支持 "models/gemini-1.5-pro" 格式
+            // 提取模型名稱，支持 "models/gemini-1.5-pro" 格式
             if (model.name && typeof model.name === 'string') {
-              return model.name.replace(/^models\//, '') // 移除 "models/" 前缀
+              return model.name.replace(/^models\//, '') // 移除 "models/" 前綴
             }
             return model.id || model.name
           })
           .filter((name: string) => name && typeof name === 'string')
       } else if (Array.isArray(data)) {
-        // 直接数组格式: [{id: "model-id"}, ...] 或 ["model-id", ...]
+        // 直接數組格式: [{id: "model-id"}, ...] 或 ["model-id", ...]
         models = data
           .map((item: any) => {
             if (typeof item === 'string') {
@@ -1678,13 +1678,13 @@ export class AIService {
         return models.sort()
       }
       
-      throw new Error('无效的模型列表响应格式')
+      throw new Error('無效的模型列表響應格式')
     } catch (error) {
       throw error
     }
   }
 
-  // OpenAI模型列表URL构建
+  // OpenAI模型列表URL構建
   private buildOpenAIModelsUrl(baseUrl: string): string {
     if (!baseUrl) {
       throw new Error('API URL 未配置')
@@ -1693,18 +1693,18 @@ export class AIService {
     let apiUrl = baseUrl.trim()
     
     if (apiUrl.includes('/models')) {
-      // 已经是模型列表URL，直接使用
+      // 已經是模型列表URL，直接使用
       return apiUrl
     } else if (apiUrl.includes('/v1')) {
-      // 包含v1但没有models，拼接models
+      // 包含v1但沒有models，拼接models
       return apiUrl.replace(/\/+$/, '') + '/models'
     } else {
-      // 基础URL，需要拼接完整路径
+      // 基礎URL，需要拼接完整路徑
       return apiUrl.replace(/\/+$/, '') + '/v1/models'
     }
   }
 
-  // Gemini模型列表URL构建
+  // Gemini模型列表URL構建
   private buildGeminiModelsUrl(baseUrl: string): string {
     if (!baseUrl) {
       throw new Error('API URL 未配置')
@@ -1713,18 +1713,18 @@ export class AIService {
     let apiUrl = baseUrl.trim()
     
     if (apiUrl.includes('/models')) {
-      // 已经是模型列表URL，直接使用
+      // 已經是模型列表URL，直接使用
       return apiUrl
     } else if (apiUrl.includes('/v1beta')) {
-      // 包含v1beta但没有models，拼接models
+      // 包含v1beta但沒有models，拼接models
       return apiUrl.replace(/\/+$/, '') + '/models'
     } else {
-      // 基础URL，需要拼接完整路径
+      // 基礎URL，需要拼接完整路徑
       return apiUrl.replace(/\/+$/, '') + '/v1beta/models'
     }
   }
 
-  // 测试连接（保持向后兼容）
+  // 測試連接（保持向後兼容）
   async testConnection(provider: ProviderConfig, modelId: string): Promise<boolean> {
     try {
       const result = await this.testModelCapabilities(provider, modelId)
@@ -1734,7 +1734,7 @@ export class AIService {
     }
   }
 
-  // 新的模型能力检测方法
+  // 新的模型能力檢測方法
   async testModelCapabilities(
     provider: ProviderConfig, 
     modelId: string

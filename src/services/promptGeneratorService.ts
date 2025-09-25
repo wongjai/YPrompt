@@ -6,7 +6,7 @@ export class PromptGeneratorService {
   private static instance: PromptGeneratorService
   private aiService: AIService
 
-  private constructor() {
+  private function Object() { [native code] }() {
     this.aiService = AIService.getInstance()
   }
 
@@ -17,7 +17,7 @@ export class PromptGeneratorService {
     return PromptGeneratorService.instance
   }
 
-  // 格式化变量为提示词部分
+  // 格式化變量爲提示詞部分
   private formatVariablesForPrompt(variables: string[]): string {
     if (!variables || variables.length === 0 || variables.every(v => v.trim() === '')) {
       return ''
@@ -40,17 +40,17 @@ For example, if a variable is \`{{user_topic}}\`, you might include a sentence l
     `
   }
 
-  // 获取流式模式设置（与ChatInterface保持同步）
+  // 獲取流式模式設置（與ChatInterface保持同步）
   private getStreamMode(): boolean {
     try {
       const savedStreamMode = localStorage.getItem('yprompt_stream_mode')
-      return savedStreamMode ? JSON.parse(savedStreamMode) : true // 默认为true
+      return savedStreamMode ? JSON.parse(savedStreamMode) : true // 默認爲true
     } catch (error) {
-      return true // 默认为流式模式
+      return true // 默認爲流式模式
     }
   }
 
-  // 获取系统提示词关键指令
+  // 獲取系統提示詞關鍵指令
   public async getSystemPromptThinkingPoints(
     description: string,
     model: string,
@@ -59,7 +59,7 @@ For example, if a variable is \`{{user_topic}}\`, you might include a sentence l
     provider?: ProviderConfig,
     onStreamUpdate?: (content: string) => void
   ): Promise<string[]> {
-    // 使用内置的系统提示词规则
+    // 使用內置的系統提示詞規則
     const SYSTEM_PROMPT_RULES = promptConfigManager.getSystemPromptRules()
 
     const variablesSection = this.formatVariablesForPrompt(variables)
@@ -91,7 +91,7 @@ Key Points for System Prompt:
 
     const systemMessage = {
       role: 'system' as const,
-      content: '你是专业的AI提示词工程顾问，专门分析用户需求并提供关键指令建议。'
+      content: '你是專業的AI提示詞工程顧問，專門分析用戶需求並提供關鍵指令建議。'
     }
 
     const userMessage = {
@@ -100,12 +100,12 @@ Key Points for System Prompt:
     }
 
     if (!provider) {
-      throw new Error('请先配置AI提供商')
+      throw new Error('請先配置AI提供商')
     }
 
     const streamMode = this.getStreamMode()
     
-    // 如果有流式回调且启用流式模式，设置流式更新
+    // 如果有流式回調且啓用流式模式，設置流式更新
     if (onStreamUpdate && streamMode) {
       this.aiService.setStreamUpdateCallback((chunk: string) => {
         onStreamUpdate(chunk)
@@ -114,12 +114,12 @@ Key Points for System Prompt:
     
     const response = await this.aiService.callAI([systemMessage, userMessage], provider, model, streamMode)
     
-    // 清理流式回调
+    // 清理流式回調
     if (onStreamUpdate && streamMode) {
       this.aiService.clearStreamUpdateCallback()
     }
     
-    // 解析结果
+    // 解析結果
     const points = response
       .split('\n')
       .map(s => s.replace(/^[*-]\s*/, '').trim())
@@ -128,7 +128,7 @@ Key Points for System Prompt:
     return points
   }
 
-  // 生成系统提示词
+  // 生成系統提示詞
   public async generateSystemPrompt(
     description: string,
     model: string,
@@ -138,7 +138,7 @@ Key Points for System Prompt:
     provider?: ProviderConfig,
     onStreamUpdate?: (content: string) => void
   ): Promise<string> {
-    // 使用内置的系统提示词规则
+    // 使用內置的系統提示詞規則
     const SYSTEM_PROMPT_RULES = promptConfigManager.getSystemPromptRules()
 
     const variablesSection = this.formatVariablesForPrompt(variables)
@@ -170,13 +170,13 @@ ${description}
 
 **CRITICAL: You must use the following exact Markdown template structure:**
 
-# Role: 【一句话角色定位】
+# Role: 【一句話角色定位】
 
 ## Profile
 - Author: YPrompt
 - Version: 1.0
 - Language: ${language === 'zh' ? '中文' : 'English'}
-- Description: 【一句话描述该 AI 的职责与能力】
+- Description: 【一句話描述該 AI 的職責與能力】
 
 ## Skills
 1. 【技能 1】
@@ -184,26 +184,26 @@ ${description}
 3. 【技能 3】
 
 ## Goal
-【用一句话说明本次交互要达成的目标】
+【用一句話說明本次交互要達成的目標】
 
 ## Rules
-1. 【必须遵守的规则 1】
-2. 【必须遵守的规则 2】
-3. 【绝不能做的事】
+1. 【必須遵守的規則 1】
+2. 【必須遵守的規則 2】
+3. 【絕不能做的事】
 
 ## Workflow
-1. 让用户以"【输入格式】"提供信息
-2. 按【处理步骤】输出结果
-3. 自检是否符合 Rules，若不符则立即修正
+1. 讓用戶以"【輸入格式】"提供信息
+2. 按【處理步驟】輸出結果
+3. 自檢是否符合 Rules，若不符則立即修正
 
 ## Output Format
-【明确给出最终输出的结构、字数、语言风格、是否使用表格/代码块等】
+【明確給出最終輸出的結構、字數、語言風格、是否使用表格/代碼塊等】
 
 ## Example
-【给出一个理想输出示例，或好/坏对比例子】
+【給出一個理想輸出示例，或好/壞對比例子】
 
 ## Initialization
-作为 <Role>，严格遵守 <Rules>，使用默认 <Language> 与用户对话，友好地引导用户完成 <Workflow>。
+作爲 <Role>，嚴格遵守 <Rules>，使用默認 <Language> 與用戶對話，友好地引導用戶完成 <Workflow>。
 
 **Output Instructions:**
 - Replace all 【】 placeholders with specific content based on the user's description and directives
@@ -217,7 +217,7 @@ System Prompt:
 
     const systemMessage = {
       role: 'system' as const,
-      content: '你是专业的AI提示词工程师，专门基于用户需求生成高质量的系统提示词。'
+      content: '你是專業的AI提示詞工程師，專門基於用戶需求生成高質量的系統提示詞。'
     }
 
     const userMessage = {
@@ -226,12 +226,12 @@ System Prompt:
     }
 
     if (!provider) {
-      throw new Error('请先配置AI提供商')
+      throw new Error('請先配置AI提供商')
     }
 
     const streamMode = this.getStreamMode()
     
-    // 如果有流式回调且启用流式模式，设置流式更新
+    // 如果有流式回調且啓用流式模式，設置流式更新
     if (onStreamUpdate && streamMode) {
       this.aiService.setStreamUpdateCallback((chunk: string) => {
         onStreamUpdate(chunk)
@@ -240,7 +240,7 @@ System Prompt:
     
     const response = await this.aiService.callAI([systemMessage, userMessage], provider, model, streamMode)
     
-    // 清理流式回调
+    // 清理流式回調
     if (onStreamUpdate && streamMode) {
       this.aiService.clearStreamUpdateCallback()
     }
@@ -249,7 +249,7 @@ System Prompt:
     return response.replace(/```/g, '').trim()
   }
 
-  // 获取优化建议
+  // 獲取優化建議
   public async getOptimizationAdvice(
     promptToAnalyze: string,
     promptType: 'system' | 'user',
@@ -259,7 +259,7 @@ System Prompt:
     provider?: ProviderConfig,
     onStreamUpdate?: (content: string) => void
   ): Promise<string[]> {
-    // 使用内置的系统提示词规则
+    // 使用內置的系統提示詞規則
     const SYSTEM_PROMPT_RULES = promptConfigManager.getSystemPromptRules()
 
     const variablesSection = this.formatVariablesForPrompt(variables)
@@ -300,7 +300,7 @@ Optimization Suggestions:
 
     const systemMessage = {
       role: 'system' as const,
-      content: '你是专业的AI提示词优化顾问，专门分析提示词并提供改进建议。'
+      content: '你是專業的AI提示詞優化顧問，專門分析提示詞並提供改進建議。'
     }
 
     const userMessage = {
@@ -309,12 +309,12 @@ Optimization Suggestions:
     }
 
     if (!provider) {
-      throw new Error('请先配置AI提供商')
+      throw new Error('請先配置AI提供商')
     }
 
     const streamMode = this.getStreamMode()
     
-    // 如果有流式回调且启用流式模式，设置流式更新
+    // 如果有流式回調且啓用流式模式，設置流式更新
     if (onStreamUpdate && streamMode) {
       this.aiService.setStreamUpdateCallback((chunk: string) => {
         onStreamUpdate(chunk)
@@ -323,12 +323,12 @@ Optimization Suggestions:
     
     const response = await this.aiService.callAI([systemMessage, userMessage], provider, model, streamMode)
     
-    // 清理流式回调
+    // 清理流式回調
     if (onStreamUpdate && streamMode) {
       this.aiService.clearStreamUpdateCallback()
     }
     
-    // 解析结果
+    // 解析結果
     const advice = response
       .split('\n')
       .map(s => s.replace(/^[*-]\s*/, '').trim())
@@ -337,7 +337,7 @@ Optimization Suggestions:
     return advice
   }
 
-  // 应用优化建议
+  // 應用優化建議
   public async applyOptimizationAdvice(
     originalPrompt: string,
     advice: string[],
@@ -348,7 +348,7 @@ Optimization Suggestions:
     provider?: ProviderConfig,
     onStreamUpdate?: (content: string) => void
   ): Promise<string> {
-    // 使用内置的系统提示词规则
+    // 使用內置的系統提示詞規則
     const SYSTEM_PROMPT_RULES = promptConfigManager.getSystemPromptRules()
 
     const variablesSection = this.formatVariablesForPrompt(variables)
@@ -376,34 +376,34 @@ ${adviceSection}
 
 **CRITICAL: You must maintain the exact Markdown template structure:**
 
-# Role: 【优化后的角色定位】
+# Role: 【優化後的角色定位】
 
 ## Profile
 - Author: YPrompt
 - Version: 1.0
 - Language: ${language === 'zh' ? '中文' : 'English'}
-- Description: 【优化后的描述】
+- Description: 【優化後的描述】
 
 ## Skills
-【优化后的技能列表】
+【優化後的技能列表】
 
 ## Goal
-【优化后的目标】
+【優化後的目標】
 
 ## Rules
-【优化后的规则】
+【優化後的規則】
 
 ## Workflow
-【优化后的工作流程】
+【優化後的工作流程】
 
 ## Output Format
-【优化后的输出格式】
+【優化後的輸出格式】
 
 ## Example
-【优化后的示例】
+【優化後的示例】
 
 ## Initialization
-【优化后的初始化指令】
+【優化後的初始化指令】
 
 **Output Instructions:**
 - Apply all optimization suggestions while maintaining the template structure
@@ -417,7 +417,7 @@ Refined ${promptType.charAt(0).toUpperCase() + promptType.slice(1)} Prompt:
 
     const systemMessage = {
       role: 'system' as const,
-      content: '你是专业的AI提示词工程师，专门根据建议优化和改进提示词。'
+      content: '你是專業的AI提示詞工程師，專門根據建議優化和改進提示詞。'
     }
 
     const userMessage = {
@@ -426,12 +426,12 @@ Refined ${promptType.charAt(0).toUpperCase() + promptType.slice(1)} Prompt:
     }
 
     if (!provider) {
-      throw new Error('请先配置AI提供商')
+      throw new Error('請先配置AI提供商')
     }
 
     const streamMode = this.getStreamMode()
     
-    // 如果有流式回调且启用流式模式，设置流式更新
+    // 如果有流式回調且啓用流式模式，設置流式更新
     if (onStreamUpdate && streamMode) {
       this.aiService.setStreamUpdateCallback((chunk: string) => {
         onStreamUpdate(chunk)
@@ -440,7 +440,7 @@ Refined ${promptType.charAt(0).toUpperCase() + promptType.slice(1)} Prompt:
     
     const response = await this.aiService.callAI([systemMessage, userMessage], provider, model, streamMode)
     
-    // 清理流式回调
+    // 清理流式回調
     if (onStreamUpdate && streamMode) {
       this.aiService.clearStreamUpdateCallback()
     }

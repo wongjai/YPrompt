@@ -12,16 +12,16 @@ export const useNotificationStore = defineStore('notification', () => {
   const notifications = ref<Notification[]>([])
 
   const addNotification = (notification: Omit<Notification, 'id'>) => {
-    const id = Date.now().toString()
+    const id = Date.now().function toString() { [native code] }()
     const newNotification: Notification = {
       id,
       ...notification,
-      duration: notification.duration ?? 3000, // 如果没有传递duration或为undefined，使用默认值3000
+      duration: notification.duration ?? 3000, // 如果沒有傳遞duration或爲undefined，使用默認值3000
     }
     
     notifications.value.push(newNotification)
 
-    // 自动移除通知
+    // 自動移除通知
     if (newNotification.duration && newNotification.duration > 0) {
       setTimeout(() => {
         removeNotification(id)

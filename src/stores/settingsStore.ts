@@ -7,9 +7,9 @@ export interface ModelConfig {
   name: string
   provider: string
   enabled: boolean
-  apiType?: 'openai' | 'anthropic' | 'google' // 模型使用的API类型
+  apiType?: 'openai' | 'anthropic' | 'google' // 模型使用的API類型
   
-  // 新增：能力检测相关字段
+  // 新增：能力檢測相關字段
   capabilities?: ModelCapabilities
   lastTested?: Date
   testStatus?: 'untested' | 'testing' | 'success' | 'failed'
@@ -17,30 +17,30 @@ export interface ModelConfig {
 
 export interface ModelCapabilities {
   reasoning: boolean                    // 是否支持思考
-  reasoningType: ReasoningType | null   // 思考类型
-  supportedParams: SupportedParams     // 支持的API参数
-  testResult?: TestResult              // 详细测试结果
+  reasoningType: ReasoningType | null   // 思考類型
+  supportedParams: SupportedParams     // 支持的API參數
+  testResult?: TestResult              // 詳細測試結果
 }
 
 export type ReasoningType = 
   | 'openai-reasoning'    // OpenAI o1系列
   | 'gemini-thought'      // Gemini thought字段
-  | 'claude-thinking'     // Claude thinking标签
-  | 'generic-cot'         // 通用链式思考
+  | 'claude-thinking'     // Claude thinking標籤
+  | 'generic-cot'         // 通用鏈式思考
 
 export interface SupportedParams {
-  temperature: boolean                  // 是否支持temperature参数
-  maxTokens: 'max_tokens' | 'max_completion_tokens'  // 使用的token参数名
-  streaming: boolean                   // 是否支持流式输出
-  systemMessage: boolean               // 是否支持系统消息
+  temperature: boolean                  // 是否支持temperature參數
+  maxTokens: 'max_tokens' | 'max_completion_tokens'  // 使用的token參數名
+  streaming: boolean                   // 是否支持流式輸出
+  systemMessage: boolean               // 是否支持系統消息
 }
 
 export interface TestResult {
-  connected: boolean                   // 基础连接是否成功
+  connected: boolean                   // 基礎連接是否成功
   reasoning: boolean                   // 思考能力是否可用
-  responseTime: number                // 响应时间(ms)
-  error?: string                      // 错误信息
-  timestamp: Date                     // 测试时间戳
+  responseTime: number                // 響應時間(ms)
+  error?: string                      // 錯誤信息
+  timestamp: Date                     // 測試時間戳
 }
 
 export interface ProviderConfig {
@@ -51,7 +51,7 @@ export interface ProviderConfig {
   baseUrl?: string
   models: ModelConfig[]
   enabled: boolean
-  allowCustomUrl?: boolean // 是否允许自定义URL
+  allowCustomUrl?: boolean // 是否允許自定義URL
 }
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -59,24 +59,24 @@ export const useSettingsStore = defineStore('settings', () => {
   const providers = ref<ProviderConfig[]>([])
   const selectedProvider = ref<string>('')
   const selectedModel = ref<string>('')
-  const streamMode = ref(true) // 默认开启流式模式
+  const streamMode = ref(true) // 默認開啓流式模式
 
-  // 提示词编辑相关状态
+  // 提示詞編輯相關狀態
   const showPromptEditor = ref(false)
   const editingPromptType = ref<'system' | 'user'>('system')
   const editingSystemRules = ref('')
   const editingUserRules = ref('')
   const editingRequirementReportRules = ref('')
 
-  // 初始化默认配置
+  // 初始化默認配置
   const initializeDefaults = () => {
-    // 不再预设空的提供商配置，让用户主动添加
+    // 不再預設空的提供商配置，讓用戶主動添加
     if (providers.value.length === 0) {
       providers.value = []
     }
   }
 
-  // 获取预设的提供商模板
+  // 獲取預設的提供商模板
   const getProviderTemplate = (type: 'openai' | 'anthropic' | 'google' | 'custom') => {
     const templates = {
       openai: {
@@ -141,23 +141,23 @@ export const useSettingsStore = defineStore('settings', () => {
     return templates[type]
   }
 
-  // 获取可用的提供商
+  // 獲取可用的提供商
   const getAvailableProviders = () => {
     return providers.value.filter(p => p.enabled && p.apiKey.trim() !== '')
   }
 
-  // 获取指定提供商的可用模型
+  // 獲取指定提供商的可用模型
   const getAvailableModels = (providerId: string) => {
     const provider = providers.value.find(p => p.id === providerId)
     return provider ? provider.models.filter(m => m.enabled) : []
   }
 
-  // 获取当前选中的提供商配置
+  // 獲取當前選中的提供商配置
   const getCurrentProvider = () => {
     return providers.value.find(p => p.id === selectedProvider.value)
   }
 
-  // 获取当前选中的模型配置
+  // 獲取當前選中的模型配置
   const getCurrentModel = () => {
     const provider = getCurrentProvider()
     return provider ? provider.models.find(m => m.id === selectedModel.value) : null
@@ -176,8 +176,8 @@ export const useSettingsStore = defineStore('settings', () => {
       ...template,
       ...customConfig,
       id,
-      apiKey: customConfig?.apiKey || '', // 确保apiKey不为undefined
-      enabled: true, // 默认启用新添加的提供商
+      apiKey: customConfig?.apiKey || '', // 確保apiKey不爲undefined
+      enabled: true, // 默認啓用新添加的提供商
       models: template.models.map(model => ({
         ...model,
         provider: id
@@ -199,7 +199,7 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
-  // 保存设置到本地存储
+  // 保存設置到本地存儲
   const saveSettings = () => {
     localStorage.setItem('yprompt_providers', JSON.stringify(providers.value))
     localStorage.setItem('yprompt_selected_provider', selectedProvider.value)
@@ -207,7 +207,7 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('yprompt_stream_mode', JSON.stringify(streamMode.value))
   }
 
-  // 从本地存储加载设置
+  // 從本地存儲加載設置
   const loadSettings = () => {
     const savedProviders = localStorage.getItem('yprompt_providers')
     const savedProvider = localStorage.getItem('yprompt_selected_provider')
@@ -236,11 +236,11 @@ export const useSettingsStore = defineStore('settings', () => {
       try {
         streamMode.value = JSON.parse(savedStreamMode)
       } catch (error) {
-        streamMode.value = true // 默认开启流式模式
+        streamMode.value = true // 默認開啓流式模式
       }
     }
 
-    // 如果没有选中的提供商，自动选择第一个可用的
+    // 如果沒有選中的提供商，自動選擇第一個可用的
     if (!selectedProvider.value) {
       const availableProviders = getAvailableProviders()
       if (availableProviders.length > 0) {
@@ -253,12 +253,12 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
-  // 删除提供商
+  // 刪除提供商
   const deleteProvider = (providerId: string) => {
     const index = providers.value.findIndex(p => p.id === providerId)
     if (index > -1) {
       providers.value.splice(index, 1)
-      // 如果删除的是当前选中的提供商，重置选择
+      // 如果刪除的是當前選中的提供商，重置選擇
       if (selectedProvider.value === providerId) {
         selectedProvider.value = ''
         selectedModel.value = ''
@@ -266,14 +266,14 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
-  // 删除模型
+  // 刪除模型
   const deleteModel = (providerId: string, modelId: string) => {
     const provider = providers.value.find(p => p.id === providerId)
     if (provider) {
       const modelIndex = provider.models.findIndex(m => m.id === modelId)
       if (modelIndex > -1) {
         provider.models.splice(modelIndex, 1)
-        // 如果删除的是当前选中的模型，重置选择
+        // 如果刪除的是當前選中的模型，重置選擇
         if (selectedModel.value === modelId) {
           selectedModel.value = ''
         }
@@ -281,10 +281,10 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
-  // 提示词编辑相关方法
+  // 提示詞編輯相關方法
   const openPromptEditor = (type: 'system' | 'user') => {
     editingPromptType.value = type
-    // 加载当前的提示词内容到编辑器
+    // 加載當前的提示詞內容到編輯器
     editingSystemRules.value = promptConfigManager.getSystemPromptRules()
     editingUserRules.value = promptConfigManager.getUserGuidedPromptRules()
     editingRequirementReportRules.value = promptConfigManager.getRequirementReportRules()
@@ -293,14 +293,14 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const closePromptEditor = () => {
     showPromptEditor.value = false
-    // 重置编辑内容
+    // 重置編輯內容
     editingSystemRules.value = ''
     editingUserRules.value = ''
     editingRequirementReportRules.value = ''
   }
 
   const savePromptRules = () => {
-    // 保存编辑后的提示词规则
+    // 保存編輯後的提示詞規則
     promptConfigManager.updateSystemPromptRules(editingSystemRules.value)
     promptConfigManager.updateUserGuidedPromptRules(editingUserRules.value)
     promptConfigManager.updateRequirementReportRules(editingRequirementReportRules.value)
@@ -308,24 +308,24 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   const resetSystemPromptRules = () => {
-    // 重置系统提示词规则为默认值
+    // 重置系統提示詞規則爲默認值
     promptConfigManager.resetSystemPromptRules()
     editingSystemRules.value = promptConfigManager.getSystemPromptRules()
   }
 
   const resetUserPromptRules = () => {
-    // 重置用户引导规则为默认值
+    // 重置用戶引導規則爲默認值
     promptConfigManager.resetUserGuidedPromptRules()
     editingUserRules.value = promptConfigManager.getUserGuidedPromptRules()
   }
 
   const resetRequirementReportRules = () => {
-    // 重置需求报告规则为默认值
+    // 重置需求報告規則爲默認值
     promptConfigManager.resetRequirementReportRules()
     editingRequirementReportRules.value = promptConfigManager.getRequirementReportRules()
   }
 
-  // 获取当前的提示词规则
+  // 獲取當前的提示詞規則
   const getCurrentSystemRules = () => {
     return promptConfigManager.getSystemPromptRules()
   }
@@ -334,7 +334,7 @@ export const useSettingsStore = defineStore('settings', () => {
     return promptConfigManager.getUserGuidedPromptRules()
   }
 
-  // 更新模型测试状态
+  // 更新模型測試狀態
   const updateModelTestStatus = (providerId: string, modelId: string, status: 'untested' | 'testing' | 'success' | 'failed') => {
     const provider = providers.value.find(p => p.id === providerId)
     if (provider) {
@@ -361,13 +361,13 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
-  // 新增：快速更新连接状态（不等思考结果）
+  // 新增：快速更新連接狀態（不等思考結果）
   const updateModelConnectionStatus = (providerId: string, modelId: string, connected: boolean, error?: string) => {
     const provider = providers.value.find(p => p.id === providerId)
     if (provider) {
       const model = provider.models.find(m => m.id === modelId)
       if (model) {
-        // 如果还没有capabilities，创建一个临时的
+        // 如果還沒有capabilities，創建一個臨時的
         if (!model.capabilities) {
           model.capabilities = {
             reasoning: false,
@@ -387,7 +387,7 @@ export const useSettingsStore = defineStore('settings', () => {
             }
           }
         } else {
-          // 更新现有的连接状态
+          // 更新現有的連接狀態
           if (model.capabilities.testResult) {
             model.capabilities.testResult.connected = connected
             model.capabilities.testResult.timestamp = new Date()
@@ -403,7 +403,7 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
-  // 新增：清空模型测试状态
+  // 新增：清空模型測試狀態
   const clearModelTestStatus = (providerId: string, modelId: string) => {
     const provider = providers.value.find(p => p.id === providerId)
     if (provider) {
@@ -416,7 +416,7 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
-  // 获取模型测试状态
+  // 獲取模型測試狀態
   const getModelTestStatus = (providerId: string, modelId: string) => {
     const provider = providers.value.find(p => p.id === providerId)
     if (provider) {
@@ -426,7 +426,7 @@ export const useSettingsStore = defineStore('settings', () => {
     return 'untested'
   }
 
-  // 检查模型是否需要重新测试
+  // 檢查模型是否需要重新測試
   const shouldRetestModel = (providerId: string, modelId: string): boolean => {
     const provider = providers.value.find(p => p.id === providerId)
     if (provider) {
@@ -435,26 +435,26 @@ export const useSettingsStore = defineStore('settings', () => {
         return true
       }
       
-      // 24小时后需要重新测试
+      // 24小時後需要重新測試
       const age = Date.now() - model.lastTested.getTime()
       return age > 24 * 60 * 60 * 1000
     }
     return true
   }
 
-  // 获取思考能力类型描述
+  // 獲取思考能力類型描述
   const getReasoningTypeDescription = (reasoningType: ReasoningType | null | undefined): string => {
     switch (reasoningType) {
       case 'openai-reasoning':
         return 'OpenAI o1系列推理能力'
       case 'gemini-thought':
-        return 'Gemini内置思考功能'
+        return 'Gemini內置思考功能'
       case 'claude-thinking':
-        return 'Claude思考标签支持'
+        return 'Claude思考標籤支持'
       case 'generic-cot':
-        return '通用链式思考'
+        return '通用鏈式思考'
       default:
-        return '无思考能力'
+        return '無思考能力'
     }
   }
 
@@ -469,7 +469,7 @@ export const useSettingsStore = defineStore('settings', () => {
     selectedProvider,
     selectedModel,
     streamMode,
-    // 提示词编辑状态
+    // 提示詞編輯狀態
     showPromptEditor,
     editingPromptType,
     editingSystemRules,
@@ -488,7 +488,7 @@ export const useSettingsStore = defineStore('settings', () => {
     deleteModel,
     saveSettings,
     loadSettings,
-    // 提示词编辑方法
+    // 提示詞編輯方法
     openPromptEditor,
     closePromptEditor,
     savePromptRules,
@@ -498,7 +498,7 @@ export const useSettingsStore = defineStore('settings', () => {
     getCurrentSystemRules,
     getCurrentUserRules,
     getCurrentRequirementReportRules,
-    // 新增：模型测试相关方法
+    // 新增：模型測試相關方法
     updateModelTestStatus,
     updateModelCapabilities,
     updateModelConnectionStatus,

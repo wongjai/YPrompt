@@ -1,11 +1,11 @@
 <template>
   <div class="bg-white rounded-lg shadow-sm p-6">
     <div class="mb-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-2">系统提示词生成器</h2>
-      <p class="text-sm text-gray-600">按照GPrompt方式生成高质量AI系统提示词</p>
+      <h2 class="text-xl font-semibold text-gray-800 mb-2">系統提示詞生成器</h2>
+      <p class="text-sm text-gray-600">按照GPrompt方式生成高質量AI系統提示詞</p>
     </div>
 
-    <!-- 用户输入区域 -->
+    <!-- 用戶輸入區域 -->
     <div class="space-y-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -13,16 +13,16 @@
         </label>
         <textarea
           v-model="description"
-          placeholder="请描述您希望AI扮演的角色和主要任务..."
+          placeholder="請描述您希望AI扮演的角色和主要任務..."
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
           rows="4"
         ></textarea>
       </div>
 
-      <!-- 语言选择 -->
+      <!-- 語言選擇 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          输出语言
+          輸出語言
         </label>
         <select 
           v-model="language" 
@@ -33,7 +33,7 @@
         </select>
       </div>
 
-      <!-- 操作按钮 -->
+      <!-- 操作按鈕 -->
       <div class="flex space-x-3">
         <button
           @click="handleGetPoints"
@@ -42,9 +42,9 @@
         >
           <span v-if="loadingStep === 1" class="flex items-center">
             <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-            获取关键指令...
+            獲取關鍵指令...
           </span>
-          <span v-else>获取关键指令</span>
+          <span v-else>獲取關鍵指令</span>
         </button>
 
         <button
@@ -54,9 +54,9 @@
         >
           <span v-if="loadingStep === 0" class="flex items-center">
             <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-            自动生成中...
+            自動生成中...
           </span>
-          <span v-else>自动生成提示词</span>
+          <span v-else>自動生成提示詞</span>
         </button>
 
         <button
@@ -64,27 +64,27 @@
           :disabled="isBusy || !conversationReport"
           class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          使用对话结果
+          使用對話結果
         </button>
       </div>
 
-      <!-- 对话结果提示 -->
+      <!-- 對話結果提示 -->
       <div v-if="conversationReport" class="bg-purple-50 border-l-4 border-purple-400 p-4">
-        <p class="text-purple-700">📋 检测到对话式需求收集结果，点击"使用对话结果"可直接基于需求报告生成提示词。</p>
+        <p class="text-purple-700">📋 檢測到對話式需求收集結果，點擊"使用對話結果"可直接基於需求報告生成提示詞。</p>
       </div>
 
-      <!-- 自动化进度显示 -->
+      <!-- 自動化進度顯示 -->
       <div v-if="automationStatus" class="bg-blue-50 border-l-4 border-blue-400 p-4">
         <p class="text-blue-700">{{ automationStatus }}</p>
       </div>
 
-      <!-- 错误信息 -->
+      <!-- 錯誤信息 -->
       <div v-if="error" class="bg-red-50 border-l-4 border-red-400 p-4">
         <p class="text-red-700">{{ error }}</p>
       </div>
     </div>
 
-    <!-- 步骤1: 关键指令 -->
+    <!-- 步驟1: 關鍵指令 -->
     <div v-if="completedSteps.includes(1)" class="mt-6">
       <div class="border rounded-lg">
         <div 
@@ -95,7 +95,7 @@
             <div class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-sm mr-3">
               ✓
             </div>
-            <h3 class="font-medium text-gray-800">步骤1: 关键指令</h3>
+            <h3 class="font-medium text-gray-800">步驟1: 關鍵指令</h3>
           </div>
           <div class="text-gray-500">
             {{ openStep === 1 ? '−' : '+' }}
@@ -131,9 +131,9 @@
               >
                 <span v-if="loadingStep === 2" class="flex items-center">
                   <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  生成初始提示词...
+                  生成初始提示詞...
                 </span>
-                <span v-else>生成初始提示词</span>
+                <span v-else>生成初始提示詞</span>
               </button>
             </div>
           </div>
@@ -141,7 +141,7 @@
       </div>
     </div>
 
-    <!-- 步骤2: 初始提示词 -->
+    <!-- 步驟2: 初始提示詞 -->
     <div v-if="completedSteps.includes(2)" class="mt-4">
       <div class="border rounded-lg">
         <div 
@@ -152,7 +152,7 @@
             <div class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-sm mr-3">
               ✓
             </div>
-            <h3 class="font-medium text-gray-800">步骤2: 初始提示词</h3>
+            <h3 class="font-medium text-gray-800">步驟2: 初始提示詞</h3>
           </div>
           <div class="text-gray-500">
             {{ openStep === 2 ? '−' : '+' }}
@@ -172,7 +172,7 @@
                 @click="copyToClipboard(initialPrompt)"
                 class="px-3 py-1 text-blue-600 hover:text-blue-800 text-sm"
               >
-                {{ copiedInitial ? '已复制!' : '复制' }}
+                {{ copiedInitial ? '已複製!' : '複製' }}
               </button>
             </div>
           </div>
@@ -180,7 +180,7 @@
       </div>
     </div>
 
-    <!-- 步骤3: 优化建议 -->
+    <!-- 步驟3: 優化建議 -->
     <div v-if="completedSteps.includes(3)" class="mt-4">
       <div class="border rounded-lg">
         <div 
@@ -191,7 +191,7 @@
             <div class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-sm mr-3">
               ✓
             </div>
-            <h3 class="font-medium text-gray-800">步骤3: 优化建议</h3>
+            <h3 class="font-medium text-gray-800">步驟3: 優化建議</h3>
           </div>
           <div class="text-gray-500">
             {{ openStep === 3 ? '−' : '+' }}
@@ -217,7 +217,7 @@
                 @click="copyToClipboard(advice.join('\\n'))"
                 class="px-3 py-1 text-blue-600 hover:text-blue-800 text-sm"
               >
-                {{ copiedAdvice ? '已复制!' : '复制建议' }}
+                {{ copiedAdvice ? '已複製!' : '複製建議' }}
               </button>
               
               <button
@@ -227,9 +227,9 @@
               >
                 <span v-if="loadingStep === 4" class="flex items-center">
                   <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  应用建议...
+                  應用建議...
                 </span>
-                <span v-else>应用建议</span>
+                <span v-else>應用建議</span>
               </button>
             </div>
           </div>
@@ -237,7 +237,7 @@
       </div>
     </div>
 
-    <!-- 步骤4: 最终提示词 -->
+    <!-- 步驟4: 最終提示詞 -->
     <div v-if="completedSteps.includes(4)" class="mt-4">
       <div class="border rounded-lg">
         <div 
@@ -248,7 +248,7 @@
             <div class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-sm mr-3">
               ✓
             </div>
-            <h3 class="font-medium text-gray-800">步骤4: 最终提示词</h3>
+            <h3 class="font-medium text-gray-800">步驟4: 最終提示詞</h3>
           </div>
           <div class="text-gray-500">
             {{ openStep === 4 ? '−' : '+' }}
@@ -268,7 +268,7 @@
                 @click="copyToClipboard(finalPrompt)"
                 class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
               >
-                {{ copiedFinal ? '已复制!' : '复制最终提示词' }}
+                {{ copiedFinal ? '已複製!' : '複製最終提示詞' }}
               </button>
             </div>
           </div>
@@ -288,7 +288,7 @@ const settingsStore = useSettingsStore()
 const promptStore = usePromptStore()
 const promptGeneratorService = PromptGeneratorService.getInstance()
 
-// 数据状态
+// 數據狀態
 const description = ref('')
 const language = ref('zh')
 const thinkingPoints = ref<string[] | null>(null)
@@ -296,23 +296,23 @@ const initialPrompt = ref<string | null>(null)
 const advice = ref<string[] | null>(null)
 const finalPrompt = ref<string | null>(null)
 
-// UI状态
+// UI狀態
 const loadingStep = ref<number | null>(null)
 const automationStatus = ref<string | null>(null)
 const error = ref<string | null>(null)
 const completedSteps = ref<number[]>([])
 const openStep = ref<number>(1)
 
-// 复制状态
+// 複製狀態
 const copiedInitial = ref(false)
 const copiedAdvice = ref(false)
 const copiedFinal = ref(false)
 
-// 计算属性
+// 計算屬性
 const isBusy = computed(() => loadingStep.value !== null)
 const conversationReport = computed(() => promptStore.promptData.requirementReport)
 
-// 重置状态
+// 重置狀態
 const resetState = () => {
   thinkingPoints.value = null
   initialPrompt.value = null
@@ -324,7 +324,7 @@ const resetState = () => {
 }
 
 
-// 获取关键指令
+// 獲取關鍵指令
 const handleGetPoints = async () => {
   if (!description.value.trim()) return
   
@@ -337,7 +337,7 @@ const handleGetPoints = async () => {
     const model = settingsStore.getCurrentModel()
     
     if (!provider || !model) {
-      throw new Error('请先配置AI模型和API密钥')
+      throw new Error('請先配置AI模型和API密鑰')
     }
     
     const points = await promptGeneratorService.getSystemPromptThinkingPoints(
@@ -353,13 +353,13 @@ const handleGetPoints = async () => {
     openStep.value = 1
     
   } catch (err: any) {
-    error.value = err.message || '获取关键指令失败'
+    error.value = err.message || '獲取關鍵指令失敗'
   } finally {
     loadingStep.value = null
   }
 }
 
-// 自动生成
+// 自動生成
 const handleAutomate = async () => {
   if (!description.value.trim()) return
   
@@ -372,11 +372,11 @@ const handleAutomate = async () => {
     const model = settingsStore.getCurrentModel()
     
     if (!provider || !model) {
-      throw new Error('请先配置AI模型和API密钥')
+      throw new Error('請先配置AI模型和API密鑰')
     }
     
-    // 步骤1: 生成关键指令
-    automationStatus.value = '步骤 1/4: 生成关键指令...'
+    // 步驟1: 生成關鍵指令
+    automationStatus.value = '步驟 1/4: 生成關鍵指令...'
     const points = await promptGeneratorService.getSystemPromptThinkingPoints(
       description.value,
       model.id,
@@ -387,8 +387,8 @@ const handleAutomate = async () => {
     thinkingPoints.value = points
     completedSteps.value = [1]
     
-    // 步骤2: 生成初始提示词
-    automationStatus.value = '步骤 2/4: 生成初始提示词...'
+    // 步驟2: 生成初始提示詞
+    automationStatus.value = '步驟 2/4: 生成初始提示詞...'
     const initial = await promptGeneratorService.generateSystemPrompt(
       description.value,
       model.id,
@@ -400,8 +400,8 @@ const handleAutomate = async () => {
     initialPrompt.value = initial
     completedSteps.value = [1, 2]
     
-    // 步骤3: 获取优化建议
-    automationStatus.value = '步骤 3/4: 获取优化建议...'
+    // 步驟3: 獲取優化建議
+    automationStatus.value = '步驟 3/4: 獲取優化建議...'
     const adviceResult = await promptGeneratorService.getOptimizationAdvice(
       initial,
       'system',
@@ -413,8 +413,8 @@ const handleAutomate = async () => {
     advice.value = adviceResult
     completedSteps.value = [1, 2, 3]
     
-    // 步骤4: 生成最终提示词
-    automationStatus.value = '步骤 4/4: 生成最终提示词...'
+    // 步驟4: 生成最終提示詞
+    automationStatus.value = '步驟 4/4: 生成最終提示詞...'
     const final = await promptGeneratorService.applyOptimizationAdvice(
       initial,
       adviceResult,
@@ -431,14 +431,14 @@ const handleAutomate = async () => {
     automationStatus.value = null
     
   } catch (err: any) {
-    error.value = err.message || '自动生成失败'
+    error.value = err.message || '自動生成失敗'
     automationStatus.value = null
   } finally {
     loadingStep.value = null
   }
 }
 
-// 生成初始提示词
+// 生成初始提示詞
 const handleGenerateInitial = async () => {
   if (!thinkingPoints.value) return
   
@@ -450,7 +450,7 @@ const handleGenerateInitial = async () => {
     
     
     if (!provider || !model) {
-      throw new Error('请先配置AI模型和API密钥')
+      throw new Error('請先配置AI模型和API密鑰')
     }
     
     const initial = await promptGeneratorService.generateSystemPrompt(
@@ -465,7 +465,7 @@ const handleGenerateInitial = async () => {
     initialPrompt.value = initial
     completedSteps.value = [...completedSteps.value, 2]
     
-    // 自动获取优化建议
+    // 自動獲取優化建議
     const adviceResult = await promptGeneratorService.getOptimizationAdvice(
       initial,
       'system',
@@ -477,7 +477,7 @@ const handleGenerateInitial = async () => {
     advice.value = adviceResult
     completedSteps.value = [...completedSteps.value, 3]
     
-    // 自动生成最终提示词
+    // 自動生成最終提示詞
     const final = await promptGeneratorService.applyOptimizationAdvice(
       initial,
       adviceResult,
@@ -491,13 +491,13 @@ const handleGenerateInitial = async () => {
     completedSteps.value = [...completedSteps.value, 4]
     
   } catch (err: any) {
-    error.value = err.message || '生成初始提示词失败'
+    error.value = err.message || '生成初始提示詞失敗'
   } finally {
     loadingStep.value = null
   }
 }
 
-// 应用建议
+// 應用建議
 const handleApplyAdvice = async () => {
   if (!initialPrompt.value || !advice.value) return
   
@@ -508,7 +508,7 @@ const handleApplyAdvice = async () => {
     const model = settingsStore.getCurrentModel()
     
     if (!provider || !model) {
-      throw new Error('请先配置AI模型和API密钥')
+      throw new Error('請先配置AI模型和API密鑰')
     }
     
     const final = await promptGeneratorService.applyOptimizationAdvice(
@@ -528,32 +528,32 @@ const handleApplyAdvice = async () => {
     openStep.value = 4
     
   } catch (err: any) {
-    error.value = err.message || '应用建议失败'
+    error.value = err.message || '應用建議失敗'
   } finally {
     loadingStep.value = null
   }
 }
 
-// 添加关键指令
+// 添加關鍵指令
 const addThinkingPoint = () => {
   if (thinkingPoints.value) {
     thinkingPoints.value.push('')
   }
 }
 
-// 使用对话结果
+// 使用對話結果
 const useConversationResult = () => {
   if (conversationReport.value) {
     description.value = conversationReport.value
   }
 }
 
-// 复制到剪贴板
+// 複製到剪貼板
 const copyToClipboard = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text)
     
-    // 设置对应的复制状态
+    // 設置對應的複製狀態
     if (text === initialPrompt.value) {
       copiedInitial.value = true
       setTimeout(() => copiedInitial.value = false, 2000)

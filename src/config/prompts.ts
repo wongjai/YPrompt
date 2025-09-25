@@ -1,6 +1,6 @@
-// 内置系统提示词配置
-// 保持独立性，便于修改和维护
-// 提示词规则已拆分到 prompts/ 目录下的独立文件中
+// 內置系統提示詞配置
+// 保持獨立性，便於修改和維護
+// 提示詞規則已拆分到 prompts/ 目錄下的獨立文件中
 
 import { 
   SYSTEM_PROMPT_RULES, 
@@ -14,12 +14,12 @@ export interface PromptConfig {
   requirementReportRules: string
 }
 
-// 提示词配置管理类
+// 提示詞配置管理類
 export class PromptConfigManager {
   private static instance: PromptConfigManager
   private config: PromptConfig
   
-  private constructor() {
+  private function Object() { [native code] }() {
     this.config = {
       systemPromptRules: SYSTEM_PROMPT_RULES,
       userGuidedPromptRules: USER_GUIDED_PROMPT_RULES,
@@ -69,19 +69,19 @@ export class PromptConfigManager {
     this.saveToStorage()
   }
 
-  // 重置系统提示词规则为默认值
+  // 重置系統提示詞規則爲默認值
   public resetSystemPromptRules(): void {
     this.config.systemPromptRules = SYSTEM_PROMPT_RULES
     this.saveToStorage()
   }
 
-  // 重置用户引导规则为默认值
+  // 重置用戶引導規則爲默認值
   public resetUserGuidedPromptRules(): void {
     this.config.userGuidedPromptRules = USER_GUIDED_PROMPT_RULES
     this.saveToStorage()
   }
 
-  // 重置需求报告规则为默认值
+  // 重置需求報告規則爲默認值
   public resetRequirementReportRules(): void {
     this.config.requirementReportRules = REQUIREMENT_REPORT_RULES
     this.saveToStorage()
@@ -100,13 +100,13 @@ export class PromptConfigManager {
       const saved = localStorage.getItem('yprompt_config')
       if (saved) {
         const parsed = JSON.parse(saved)
-        // 只加载用户自定义的内容，如果不存在则使用默认值
+        // 只加載用戶自定義的內容，如果不存在則使用默認值
         this.config.systemPromptRules = parsed.systemPromptRules || SYSTEM_PROMPT_RULES
         this.config.userGuidedPromptRules = parsed.userGuidedPromptRules || USER_GUIDED_PROMPT_RULES
         this.config.requirementReportRules = parsed.requirementReportRules || REQUIREMENT_REPORT_RULES
       }
     } catch (error) {
-      // 加载失败时使用默认配置
+      // 加載失敗時使用默認配置
       this.config = {
         systemPromptRules: SYSTEM_PROMPT_RULES,
         userGuidedPromptRules: USER_GUIDED_PROMPT_RULES,
@@ -116,5 +116,5 @@ export class PromptConfigManager {
   }
 }
 
-// 单例实例导出
+// 單例實例導出
 export const promptConfigManager = PromptConfigManager.getInstance()
