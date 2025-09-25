@@ -8,8 +8,17 @@
   >
     <div class="p-4 border-b border-gray-200 flex-shrink-0">
       <div class="flex justify-between items-center">
-        <div>
+        <div class="flex items-center space-x-2">
           <h2 class="font-semibold text-gray-800">AI助手对话</h2>
+          <button
+            @click="showModelSelector = !showModelSelector"
+            class="p-1 hover:bg-gray-100 rounded transition-colors"
+            :title="chatModel ? `当前模型: ${getChatModelDisplay()}` : '选择AI助手专用模型'"
+          >
+            <svg class="w-4 h-4 text-gray-600 hover:text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4 4m4-4l-4-4m0 6H4m0 0l4 4m-4-4l4-4"/>
+            </svg>
+          </button>
         </div>
         <div class="flex items-center space-x-3">
           <!-- 移动端折叠按钮 -->
@@ -50,6 +59,69 @@
           >
             重新开始
           </button>
+        </div>
+      </div>
+      
+      <!-- AI助手模型选择器 -->
+      <div v-if="showModelSelector" class="px-4 pb-2 border-b border-gray-200 bg-gray-50">
+        <div class="py-2 space-y-2">
+          <!-- 标题行 -->
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium text-gray-700">AI助手专用模型</label>
+            <button
+              v-if="chatProvider"
+              @click="resetChatModel"
+              class="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
+              title="重置为全局模型"
+            >
+              重置
+            </button>
+          </div>
+          
+          <!-- 选择器行 - 桌面端横向，移动端竖向 -->
+          <div class="flex flex-col sm:flex-row gap-2">
+            <div class="flex-1">
+              <select
+                v-model="chatProvider"
+                @change="onChatProviderChange"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">使用全局模型</option>
+                <option
+                  v-for="provider in availableChatProviders"
+                  :key="provider.id"
+                  :value="provider.id"
+                >
+                  {{ provider.name }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="flex-1">
+              <select
+                v-model="chatModel"
+                @change="saveChatModelSettings"
+                :disabled="!chatProvider"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-100"
+              >
+                <option value="">选择模型</option>
+                <option
+                  v-for="model in availableChatModels"
+                  :key="model.id"
+                  :value="model.id"
+                >
+                  {{ model.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- 当前状态提示 -->
+          <div class="text-xs text-gray-500">
+            <span v-if="!chatProvider">当前: 跟随全局模型设置</span>
+            <span v-else-if="!chatModel">请选择模型</span>
+            <span v-else>当前: {{ getChatModelDisplay() }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -460,6 +532,11 @@ const editTextareaRefs = ref<Record<string, HTMLTextAreaElement | null>>({})
 // 流式模式状态
 const isStreamMode = ref(true) // 默认开启流式模式
 
+// AI助手专用模型状态
+const showModelSelector = ref(false)
+const chatProvider = ref<string>('')
+const chatModel = ref<string>('')
+
 // 输入法组合状态
 const isComposing = ref(false)
 
@@ -496,6 +573,57 @@ const toggleStreamMode = () => {
   isStreamMode.value = !isStreamMode.value
   // 可以选择将状态保存到本地存储
   localStorage.setItem('yprompt_stream_mode', JSON.stringify(isStreamMode.value))
+}
+
+// AI助手专用模型相关计算属性和方法
+const availableChatProviders = computed(() => {
+  return settingsStore.getAvailableProviders()
+})
+
+const availableChatModels = computed(() => {
+  if (!chatProvider.value) return []
+  return settingsStore.getAvailableModels(chatProvider.value)
+})
+
+const onChatProviderChange = () => {
+  chatModel.value = ''
+  const models = availableChatModels.value
+  if (models.length > 0) {
+    chatModel.value = models[0].id
+  }
+  saveChatModelSettings()
+}
+
+const saveChatModelSettings = () => {
+  localStorage.setItem('yprompt_chat_provider', chatProvider.value)
+  localStorage.setItem('yprompt_chat_model', chatModel.value)
+}
+
+const resetChatModel = () => {
+  chatProvider.value = ''
+  chatModel.value = ''
+  saveChatModelSettings()
+  showModelSelector.value = false
+}
+
+const getChatModelDisplay = () => {
+  if (!chatProvider.value || !chatModel.value) return '全局模型'
+  const provider = availableChatProviders.value.find(p => p.id === chatProvider.value)
+  const model = availableChatModels.value.find(m => m.id === chatModel.value)
+  return `${provider?.name} - ${model?.name}`
+}
+
+// 获取当前AI助手应该使用的模型
+const getCurrentChatModel = () => {
+  if (chatProvider.value && chatModel.value) {
+    const provider = availableChatProviders.value.find(p => p.id === chatProvider.value)
+    const model = availableChatModels.value.find(m => m.id === chatModel.value)
+    return { provider, model }
+  }
+  // 回退到全局模型
+  const globalProvider = settingsStore.getCurrentProvider()
+  const globalModel = settingsStore.getCurrentModel()
+  return { provider: globalProvider, model: globalModel }
 }
 
 // 计算是否应该显示快捷回复（从第二个问题开始）
@@ -575,6 +703,27 @@ const initializeChat = async () => {
 // 挂载和卸载事件监听器
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  
+  // 加载AI助手模型设置
+  const savedProvider = localStorage.getItem('yprompt_chat_provider')
+  const savedModel = localStorage.getItem('yprompt_chat_model')
+  if (savedProvider) {
+    chatProvider.value = savedProvider
+  }
+  if (savedModel) {
+    chatModel.value = savedModel
+  }
+  
+  // 加载流式模式设置
+  const savedStreamMode = localStorage.getItem('yprompt_stream_mode')
+  if (savedStreamMode !== null) {
+    try {
+      isStreamMode.value = JSON.parse(savedStreamMode)
+    } catch (e) {
+      isStreamMode.value = true // 默认开启
+    }
+  }
+  
   // 初始化对话
   initializeChat()
 })
@@ -654,8 +803,7 @@ const sendMessage = async () => {
   }
   
   // 检查是否配置了AI模型
-  const provider = settingsStore.getCurrentProvider()
-  const model = settingsStore.getCurrentModel()
+  const { provider, model } = getCurrentChatModel()
   
   if (!provider || !model) {
     notificationStore.warning('请先在右上角设置中配置AI模型和API密钥')
@@ -695,7 +843,12 @@ const sendMessage = async () => {
     await simulateTyping('好的，我将立即为您生成需求报告。', false)
     
     setTimeout(async () => {
-      await generatePrompt(provider, model.id)
+      // 使用全局模型生成提示词，不使用AI助手专用模型
+      const globalProvider = settingsStore.getCurrentProvider()
+      const globalModel = settingsStore.getCurrentModel()
+      if (globalProvider && globalModel) {
+        await generatePrompt(globalProvider, globalModel.id)
+      }
     }, 800)
     return
   }
@@ -786,7 +939,12 @@ const sendMessage = async () => {
       
       if (shouldEndConversation || aiResponse.includes('基于我们的对话，我现在为您生成需求报告：')) {
         setTimeout(async () => {
-          await generatePrompt(provider, model.id)
+          // 使用全局模型生成提示词，不使用AI助手专用模型
+          const globalProvider = settingsStore.getCurrentProvider()
+          const globalModel = settingsStore.getCurrentModel()
+          if (globalProvider && globalModel) {
+            await generatePrompt(globalProvider, globalModel.id)
+          }
         }, 800)
       }
     } else {
@@ -814,7 +972,12 @@ const sendMessage = async () => {
         await simulateTyping(cleanResponse, false)
         
         setTimeout(async () => {
-          await generatePrompt(provider, model.id)
+          // 使用全局模型生成提示词，不使用AI助手专用模型
+          const globalProvider = settingsStore.getCurrentProvider()
+          const globalModel = settingsStore.getCurrentModel()
+          if (globalProvider && globalModel) {
+            await generatePrompt(globalProvider, globalModel.id)
+          }
         }, 800)
       } else {
         // 正常回复 - 清理评估标签
@@ -1170,8 +1333,7 @@ const regenerateMessage = async (messageId: string, messageIndex: number) => {
   }
 
   // 检查是否配置了AI模型
-  const provider = settingsStore.getCurrentProvider()
-  const model = settingsStore.getCurrentModel()
+  const { provider, model } = getCurrentChatModel()
   
   if (!provider || !model) {
     notificationStore.warning('请先在右上角设置中配置AI模型和API密钥')
@@ -1257,8 +1419,7 @@ const resendMessage = async (messageId: string) => {
   }
 
   // 检查是否配置了AI模型
-  const provider = settingsStore.getCurrentProvider()
-  const model = settingsStore.getCurrentModel()
+  const { provider, model } = getCurrentChatModel()
   
   if (!provider || !model) {
     notificationStore.warning('请先在右上角设置中配置AI模型和API密钥')
@@ -1336,7 +1497,12 @@ const resendMessage = async (messageId: string) => {
         
         if (shouldEndConversation || aiResponse.includes('基于我们的对话，我现在为您生成需求报告：')) {
           setTimeout(async () => {
-            await generatePrompt(provider, model.id)
+            // 使用全局模型生成提示词，不使用AI助手专用模型
+          const globalProvider = settingsStore.getCurrentProvider()
+          const globalModel = settingsStore.getCurrentModel()
+          if (globalProvider && globalModel) {
+            await generatePrompt(globalProvider, globalModel.id)
+          }
           }, 800)
         }
       } else {
@@ -1364,7 +1530,12 @@ const resendMessage = async (messageId: string) => {
           await simulateTyping(cleanResponse, false)
           
           setTimeout(async () => {
-            await generatePrompt(provider, model.id)
+            // 使用全局模型生成提示词，不使用AI助手专用模型
+          const globalProvider = settingsStore.getCurrentProvider()
+          const globalModel = settingsStore.getCurrentModel()
+          if (globalProvider && globalModel) {
+            await generatePrompt(globalProvider, globalModel.id)
+          }
           }, 800)
         } else {
           // 正常回复 - 清理评估标签
@@ -1400,8 +1571,7 @@ const resendUserMessage = async (messageId: string, messageIndex: number) => {
   }
 
   // 检查是否配置了AI模型
-  const provider = settingsStore.getCurrentProvider()
-  const model = settingsStore.getCurrentModel()
+  const { provider, model } = getCurrentChatModel()
   
   if (!provider || !model) {
     notificationStore.warning('请先在右上角设置中配置AI模型和API密钥')
@@ -1471,7 +1641,12 @@ const resendUserMessage = async (messageId: string, messageIndex: number) => {
       
       if (shouldEndConversation || aiResponse.includes('基于我们的对话，我现在为您生成需求报告：')) {
         setTimeout(async () => {
-          await generatePrompt(provider, model.id)
+          // 使用全局模型生成提示词，不使用AI助手专用模型
+          const globalProvider = settingsStore.getCurrentProvider()
+          const globalModel = settingsStore.getCurrentModel()
+          if (globalProvider && globalModel) {
+            await generatePrompt(globalProvider, globalModel.id)
+          }
         }, 800)
       }
     } else {
@@ -1499,7 +1674,12 @@ const resendUserMessage = async (messageId: string, messageIndex: number) => {
         await simulateTyping(cleanResponse, false)
         
         setTimeout(async () => {
-          await generatePrompt(provider, model.id)
+          // 使用全局模型生成提示词，不使用AI助手专用模型
+          const globalProvider = settingsStore.getCurrentProvider()
+          const globalModel = settingsStore.getCurrentModel()
+          if (globalProvider && globalModel) {
+            await generatePrompt(globalProvider, globalModel.id)
+          }
         }, 800)
       } else {
         // 正常回复 - 清理评估标签
